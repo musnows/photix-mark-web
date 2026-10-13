@@ -43,6 +43,10 @@ export class MultiRichTextProcessor extends ImageProcessor {
     const fontSize = height * 0.8
     const textSpacing = this.calculateSpacing(config.text_spacing, referenceWidth)  // 使用图片宽度作为参考
 
+    await Promise.all([...new Set(segments.filter((seg: any) => seg.text).map((seg: any) => seg.is_bold ? '700' : '300'))].map(weight =>
+      document.fonts.load(`${weight} ${fontSize}px "Alibaba PuHuiTi"`)
+    ))
+
     // 创建临时 canvas 测量文本
     const tempCanvas = createCanvas(1, 1)
     const tempCtx = tempCanvas.getContext('2d')!
@@ -63,7 +67,20 @@ export class MultiRichTextProcessor extends ImageProcessor {
         imageCtx.globalCompositeOperation = 'source-in'
         imageCtx.fillStyle = parseColor(seg.color)
         imageCtx.fillRect(0, 0, imageCanvas.width, imageCanvas.height)
-        return { ...seg, width, imageCanvas }
+        const pixels = imageCtx.getImageData(0, 0, imageCanvas.width, imageCanvas.height).data
+        let top = imageCanvas.height
+        let bottom = -1
+        for (let y = 0; y < imageCanvas.height; y++) {
+          for (let x = 0; x < imageCanvas.width; x++) {
+            if (pixels[(y * imageCanvas.width + x) * 4 + 3] > 0) {
+              top = Math.min(top, y)
+              bottom = Math.max(bottom, y)
+              break
+            }
+          }
+        }
+        const centerY = bottom >= top ? (top + bottom + 1) / 2 : imageCanvas.height / 2
+        return { ...seg, width, imageCanvas, centerY }
       }
 
       const fontWeight = seg.is_bold ? '700' : '300'
@@ -72,7 +89,8 @@ export class MultiRichTextProcessor extends ImageProcessor {
       const metrics = tempCtx.measureText(seg.text)
       return {
         ...seg,
-        width: Math.ceil(metrics.width)
+        width: Math.ceil(metrics.width),
+        baselineOffset: (metrics.actualBoundingBoxAscent - metrics.actualBoundingBoxDescent) / 2
       }
     }))
 
@@ -81,7 +99,7 @@ export class MultiRichTextProcessor extends ImageProcessor {
                        textSpacing * (segments.length - 1)
 
     // 创建文本图层
-    const padding = 40
+    const padding = config.trim ? 0 : 40
     const textCanvas = createCanvas(totalWidth + padding * 2, height + padding * 2)
     const tCtx = textCanvas.getContext('2d')!
 
@@ -92,7 +110,7 @@ export class MultiRichTextProcessor extends ImageProcessor {
         tCtx.drawImage(
           seg.imageCanvas,
           currentX + (seg.width - seg.imageCanvas.width) / 2,
-          padding + (height - seg.imageCanvas.height) / 2
+          padding + height / 2 - seg.centerY
         )
         currentX += seg.width + textSpacing
         return
@@ -101,9 +119,9 @@ export class MultiRichTextProcessor extends ImageProcessor {
       drawText(tCtx, {
         text: seg.text,
         x: currentX,
-        y: height / 2 + padding,
+        y: height / 2 + padding + seg.baselineOffset,
         align: 'left',
-        baseline: 'middle',
+        baseline: 'alphabetic',
         color: parseColor(seg.color),
         fontSize,
         fontWeight: seg.is_bold ? '700' : '300',

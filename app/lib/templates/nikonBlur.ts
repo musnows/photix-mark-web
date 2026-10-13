@@ -31,7 +31,7 @@ export const nikonBlur: TemplateConfig = {
         },
         {
           image: '/logos/Nikkor-ZZ.svg',
-          image_scale: 1.2,  // 只缩放 Z 标识：0.8 缩小 20%，1.2 放大 20%；不改变型号文字和占位
+          image_scale: 1,  // 只缩放 Z 标识：0.8 缩小 20%，1.2 放大 20%；不改变型号文字和占位
           image_scale_key: 'nikonZScale',
           color: '#FFFFFF',
           color_key: 'nikonZColor'
@@ -43,6 +43,7 @@ export const nikonBlur: TemplateConfig = {
           trim: true
         }
       ],
+      trim: true,
       text_spacing: 0.005,  // min(vh(2), vw(2))
       height: 0.04  // vh(4)
     },
@@ -124,7 +125,7 @@ export const nikonBlur: TemplateConfig = {
 
   userOptions: {
     nikonZ: {
-      scale: 1.2
+      scale: 1
     },
     colors: {
       nikonZColor: '#FFFFFF'
