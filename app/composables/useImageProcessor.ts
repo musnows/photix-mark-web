@@ -58,6 +58,7 @@ export function useImageProcessor() {
 
     // 4. 构建初始上下文
     const context: ProcessorContext = {
+      sourceCanvas,
       buffer: [sourceCanvas],
       exif,
       config: userConfig || {}

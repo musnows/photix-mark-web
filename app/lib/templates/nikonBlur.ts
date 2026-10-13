@@ -2,12 +2,12 @@ import type { TemplateConfig } from './types'
 
 /**
  * 尼康专用背景模糊模板
- * 尼康 Z 系列相机专用，支持三色 Nikkor Z 标识
+ * 尼康 Z 系列相机专用，支持四色 Nikkor Z 标识
  */
 export const nikonBlur: TemplateConfig = {
   id: 'nikonBlur',
   name: 'Z系列专版',
-  description: '尼康 Z 系列专用，Z 标识可选红、黑、黄三色',
+  description: '尼康 Z 系列专用，Z 标识默认白色，可选红、黑、黄，支持调节背景暗角',
   preview: '/templates/nikon_blur.jpg',
 
   processors: [
@@ -33,7 +33,7 @@ export const nikonBlur: TemplateConfig = {
           image: '/logos/Nikkor-ZZ.svg',
           image_scale: 1.2,  // 只缩放 Z 标识：0.8 缩小 20%，1.2 放大 20%；不改变型号文字和占位
           image_scale_key: 'nikonZScale',
-          color: '#FFCC00',
+          color: '#FFFFFF',
           color_key: 'nikonZColor'
         },
         {
@@ -69,6 +69,7 @@ export const nikonBlur: TemplateConfig = {
     {
       processor_name: 'blur',
       blur_radius: 0.05,
+      vignette_strength: 0.3,
       target_index: 0
     },
     // 5. 放大模糊背景
@@ -126,7 +127,7 @@ export const nikonBlur: TemplateConfig = {
       scale: 1.2
     },
     colors: {
-      nikonZColor: '#FFCC00'
+      nikonZColor: '#FFFFFF'
     },
     exifFields: {
       showLens: false,
@@ -151,7 +152,9 @@ export const nikonBlur: TemplateConfig = {
       imageMargin: 0.12
     },
     blur: {
-      blurRadius: 0.05
+      blurRadius: 0.05,
+      vignetteEnabled: true,
+      vignetteStrength: 0.3
     }
   }
 }

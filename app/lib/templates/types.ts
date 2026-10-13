@@ -31,7 +31,7 @@ export interface TemplateUserOptions {
   colors?: {
     textColor?: string
     secondaryTextColor?: string
-    nikonZColor?: '#FF0000' | '#000000' | '#FFCC00'
+    nikonZColor?: '#FFFFFF' | '#FF0000' | '#000000' | '#FFCC00'
   }
 
   /** 背景色控制 */
@@ -62,6 +62,8 @@ export interface TemplateUserOptions {
   /** 模糊控制 */
   blur?: {
     blurRadius?: number
+    vignetteEnabled?: boolean
+    vignetteStrength?: number
   }
 
   /** 个性文字控制 */

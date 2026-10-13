@@ -20,7 +20,7 @@
         <h3 class="section-title">颜色</h3>
       </div>
       <div class="space-y-2.5 sm:space-y-3">
-        <div v-if="hasColor('nikonZColor')" class="field-row">
+        <div v-if="hasColor('nikonZColor')" class="field-row nikon-color-row">
           <span class="field-label">Z 标识颜色</span>
           <div class="field-actions" role="group" aria-label="Z 标识颜色">
             <button
@@ -268,6 +268,43 @@
             @input="updateConfig('blurRadius', Number(($event.target as HTMLInputElement).value))"
             class="slider-input"
           />
+        </div>
+        <div v-if="hasBlur('vignetteEnabled')" class="toggle-row">
+          <span class="field-label">背景暗角</span>
+          <div class="flex items-center gap-2">
+            <button @click="resetField('vignetteEnabled')" class="reset-chip">重置</button>
+            <button
+              type="button"
+              role="switch"
+              aria-label="背景暗角"
+              :aria-checked="localConfig.vignetteEnabled"
+              @click="updateConfig('vignetteEnabled', !localConfig.vignetteEnabled)"
+              :class="toggleClass(localConfig.vignetteEnabled)"
+            >
+              <span :class="toggleKnobClass(localConfig.vignetteEnabled)" />
+            </button>
+          </div>
+        </div>
+        <div v-if="hasBlur('vignetteStrength')" class="space-y-2">
+          <div class="range-head">
+            <label class="field-label">暗角幅度</label>
+            <div class="range-actions">
+              <span class="value-pill">{{ Math.round(localConfig.vignetteStrength * 100) }}%</span>
+              <button @click="resetField('vignetteStrength')" class="reset-chip">重置</button>
+            </div>
+          </div>
+          <input
+            type="range"
+            aria-label="暗角幅度"
+            min="0"
+            max="1"
+            step="0.01"
+            :value="localConfig.vignetteStrength"
+            :disabled="!localConfig.vignetteEnabled"
+            @input="updateConfig('vignetteStrength', Number(($event.target as HTMLInputElement).value))"
+            class="slider-input disabled:opacity-40"
+          />
+          <p class="text-[11px] text-slate-500 sm:text-xs">0% 无暗角，100% 最强；仅影响模糊背景</p>
         </div>
       </div>
     </section>
@@ -739,6 +776,14 @@ watch(() => props.modelValue, (value) => {
 
 .field-actions {
   @apply ml-2 flex shrink-0 items-center gap-1.5 sm:gap-2;
+}
+
+.nikon-color-row {
+  @apply flex-col items-start;
+}
+
+.nikon-color-row .field-actions {
+  @apply ml-0 max-w-full flex-wrap;
 }
 
 .reset-chip {

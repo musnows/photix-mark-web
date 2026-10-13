@@ -1,5 +1,6 @@
 import { ImageProcessor, type ProcessorContext } from './types'
 import { createCanvas } from '~/utils/canvas'
+import { blurBackground } from '~/utils/blurBackground'
 
 /**
  * 模糊处理器
@@ -26,6 +27,14 @@ export class BlurProcessor extends ImageProcessor {
     const blurRadius = blurRadiusConfig < 1
       ? blurRadiusConfig * canvas.height
       : blurRadiusConfig
+
+    if (config.vignette_strength !== undefined) {
+      const strength = config.vignetteEnabled === false
+        ? 0
+        : Number(config.vignetteStrength ?? config.vignette_strength)
+      ctx.buffer.push(blurBackground(ctx.sourceCanvas || canvas, canvas.width, canvas.height, blurRadius, strength))
+      return ctx
+    }
 
     // 创建模糊后的 Canvas
     const blurredCanvas = createCanvas(canvas.width, canvas.height)
