@@ -25,3 +25,6 @@ logs
 .claude/
 .firecrawl/
 .superpowers/
+.desktop/
+release/
+.ai-docs/

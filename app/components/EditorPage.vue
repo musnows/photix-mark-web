@@ -157,6 +157,7 @@
 
             <!-- Download Buttons -->
             <div class="space-y-2 pt-2 border-t">
+              <ExportDirectory />
               <Button
                 @click="downloadCurrent"
                 variant="secondary"
@@ -271,6 +272,7 @@
 
           <!-- 导出 Tab -->
           <div v-show="currentMobileTab === 'export'" class="p-3 space-y-2">
+            <ExportDirectory />
             <Button
               @click="downloadCurrent"
               variant="secondary"

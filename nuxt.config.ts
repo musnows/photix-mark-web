@@ -1,12 +1,16 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+const desktopBuild = process.env.PHOTIX_DESKTOP === '1'
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
-  devtools: { enabled: true },
+  ssr: !desktopBuild,
+  devtools: { enabled: !desktopBuild },
+  ignore: ['.desktop/**', 'release/**', '.ai-docs/**'],
 
   modules: [
     '@nuxtjs/tailwindcss',
     '@nuxtjs/color-mode',
-    '@nuxtjs/seo'
+    ...(!desktopBuild ? ['@nuxtjs/seo'] : [])
   ],
 
   colorMode: {
@@ -17,7 +21,7 @@ export default defineNuxtConfig({
 
   devServer: {
     host: '0.0.0.0',
-    port: 3000
+    port: 13000
   },
 
   site: {
@@ -72,7 +76,7 @@ export default defineNuxtConfig({
         { rel: 'manifest', href: '/site.webmanifest' },
         { rel: 'canonical', href: 'https://mark.photix.cc' }
       ],
-      script: [
+      script: desktopBuild ? [] : [
         // Google Analytics
         {
           src: 'https://www.googletagmanager.com/gtag/js?id=G-ZCR913SBT5',

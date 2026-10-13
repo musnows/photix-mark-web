@@ -22,7 +22,7 @@ export async function downloadImages(
     // 单张：直接导出
     const result = results[0]
     const fileName = generateFileName(result.name)
-    FileSaver.saveAs(result.blob, fileName)
+    await saveExport(result.blob, fileName)
   } else {
     // 多张：打包 ZIP
     const zip = new JSZip()
@@ -41,8 +41,16 @@ export async function downloadImages(
 
     // 导出 ZIP
     const timestamp = new Date().toISOString().slice(0, 10)
-    FileSaver.saveAs(zipBlob, `photix-mark-${timestamp}.zip`)
+    await saveExport(zipBlob, `photix-mark-${timestamp}.zip`)
   }
+}
+
+async function saveExport(blob: Blob, name: string): Promise<void> {
+  if (typeof window !== 'undefined' && window.photixDesktop) {
+    await window.photixDesktop.saveFile({ name, bytes: new Uint8Array(await blob.arrayBuffer()) })
+    return
+  }
+  FileSaver.saveAs(blob, name)
 }
 
 /**

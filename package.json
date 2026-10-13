@@ -1,5 +1,6 @@
 {
   "name": "photix-mark-web",
+  "version": "1.0.0",
   "type": "module",
   "private": true,
   "scripts": {
@@ -7,7 +8,12 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "desktop:build": "node scripts/build-desktop.mjs",
+    "desktop:start": "node scripts/start-desktop.mjs",
+    "desktop:pack": "npm run desktop:build && electron-builder --config electron-builder.config.cjs --dir",
+    "desktop:dist": "npm run desktop:build && electron-builder --config electron-builder.config.cjs",
+    "test:desktop": "node --test tests/desktop.test.cjs"
   },
   "dependencies": {
     "@nuxtjs/tailwindcss": "^6.14.0",
@@ -26,6 +32,8 @@
     "@vueuse/core": "^14.1.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "electron": "^44.7.0",
+    "electron-builder": "^26.15.3",
     "radix-vue": "^1.9.17",
     "tailwind-merge": "^3.4.0",
     "tailwindcss-animate": "^1.0.7"
