@@ -1,5 +1,6 @@
 export const BUILTIN_LOGOS = [
   { name: '尼康 Nikon', path: '/logos/nikon.png' },
+  { name: '尼康 Nikon 斜体字标', path: '/logos/nikon_italic.svg' },
   { name: '佳能 Canon', path: '/logos/canon.png' },
   { name: '索尼 Sony 白色', path: '/logos/sony.png' },
   { name: '索尼 Sony 黑色', path: '/logos/sony_dark.png' },
