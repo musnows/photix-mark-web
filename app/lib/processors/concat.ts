@@ -67,7 +67,7 @@ export class ConcatProcessor extends ImageProcessor {
     let currentY = 0
     for (const layer of layers) {
       const x = (maxWidth - layer.width) / 2 // 水平居中
-      mCtx.drawImage(layer, x, currentY)
+      mCtx.drawImage(layer, ctx.config.pixel_align ? Math.round(x) : x, ctx.config.pixel_align ? Math.round(currentY) : currentY)
       currentY += layer.height + spacing
     }
 

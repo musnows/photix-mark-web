@@ -18,17 +18,27 @@ function bounds(canvas: HTMLCanvasElement, matches: (r: number, g: number, b: nu
   const pixels = canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height).data
   let top = canvas.height
   let bottom = -1
+  const coverage = new Float64Array(canvas.height)
   for (let y = 0; y < canvas.height; y++) {
     for (let x = 0; x < canvas.width; x++) {
       const offset = (y * canvas.width + x) * 4
       if (matches(...Array.from(pixels.slice(offset, offset + 4)) as [number, number, number, number])) {
         top = Math.min(top, y)
         bottom = Math.max(bottom, y)
+        coverage[y] = Math.max(coverage[y], pixels[offset + 3])
       }
     }
   }
   assert(bottom >= top, 'Expected visible pixels')
-  return { top, bottom, center: (top + bottom) / 2 }
+  const half = Math.max(...coverage) / 2
+  const first = coverage.findIndex(value => value >= half)
+  let last = coverage.length - 1
+  while (coverage[last] < half) last--
+  const previous = coverage[first - 1] || 0
+  const next = coverage[last + 1] || 0
+  const upperEdge = first - 0.5 + (half - previous) / (coverage[first] - previous)
+  const lowerEdge = last + 0.5 + (coverage[last] - half) / (coverage[last] - next)
+  return { top, bottom, center: (upperEdge + lowerEdge) / 2 }
 }
 
 export async function runNikonAlignmentTests() {
@@ -39,7 +49,7 @@ export async function runNikonAlignmentTests() {
   const exif = { Model: 'NIKON Z f', FocalLength: 50, FNumber: 2.8, ExposureTime: 1 / 125, ISO: 400 }
   const results = []
 
-  for (const height of [400, 1000, 4000]) {
+  for (const height of [400, 416, 728, 1000, 4000]) {
     const source = document.createElement('canvas')
     source.width = Math.round(height * 1.625)
     source.height = height
@@ -57,12 +67,31 @@ export async function runNikonAlignmentTests() {
       }
       await new MultiRichTextProcessor().process(ctx)
       const model = ctx.buffer[1]
-      const nikon = bounds(model, (r, g, b, a) => a > 100 && r > 200 && g < 30 && b < 30)
-      const z = bounds(model, (r, g, b, a) => a > 100 && r > 200 && g > 200 && b > 200)
-      const f = bounds(model, (r, g, b, a) => a > 100 && r < 30 && g > 200 && b > 200)
-      assert(Math.abs(z.center - f.center) <= 1, `Z and f must be vertically centered at ${height}px, ${scale}x`)
-      assert(Math.abs(z.center - nikon.center) <= 1, `NIKON and Z must be vertically centered at ${height}px, ${scale}x`)
+      const nikon = bounds(model, (r, g, b, a) => a > 0 && r > 200 && g < 30 && b < 30)
+      const z = bounds(model, (r, g, b, a) => a > 0 && r > 200 && g > 200 && b > 200)
+      const f = bounds(model, (r, g, b, a) => a > 0 && r < 30 && g > 200 && b > 200)
+      assert(Math.abs(z.center - f.center) <= 0.05, `Z and f must be vertically centered at ${height}px, ${scale}x: ${JSON.stringify({ nikon, z, f })}`)
+      assert(Math.abs(z.center - nikon.center) <= 0.05, `NIKON and Z must be vertically centered at ${height}px, ${scale}x`)
       assert(model.height === Math.floor(height * modelStep.height), 'Model layer must not contain fixed transparent padding')
+      const backdrop = document.createElement('canvas')
+      backdrop.width = model.width + 101
+      backdrop.height = model.height + 101
+      const params = document.createElement('canvas')
+      params.width = model.width + 13
+      params.height = 7
+      const composed: ProcessorContext = { buffer: [backdrop, model, params], exif, config: { ...steps.find(step => step.processor_name === 'concat'), select: [1, 2] } }
+      new ConcatProcessor().process(composed)
+      composed.config = { ...steps[steps.length - 1], select: [0, 3] }
+      new AlignmentProcessor().process(composed)
+      const finalY = Math.round(backdrop.height - composed.buffer[3].height - backdrop.height * 0.08)
+      const finalRow = document.createElement('canvas')
+      finalRow.width = backdrop.width
+      finalRow.height = model.height
+      finalRow.getContext('2d')!.putImageData(composed.buffer[4].getContext('2d')!.getImageData(0, finalY, backdrop.width, model.height), 0, 0)
+      const finalNikon = bounds(finalRow, (r, g, b, a) => a > 0 && r > 200 && g < 30 && b < 30)
+      const finalZ = bounds(finalRow, (r, g, b, a) => a > 0 && r > 200 && g > 200 && b > 200)
+      const finalF = bounds(finalRow, (r, g, b, a) => a > 0 && r < 30 && g > 200 && b > 200)
+      assert(Math.abs(finalZ.center - finalF.center) <= 0.05 && Math.abs(finalZ.center - finalNikon.center) <= 0.05, 'Final composition must preserve visible vertical centers')
       const originalPixels = model.getContext('2d')!.getImageData(0, 0, model.width, model.height).data
       for (const color of ['#FFCC00', '#FF0000', '#000000']) {
         const colored: ProcessorContext = { buffer: [source], exif, config: { ...ctx.config, nikonZColor: color } }
@@ -72,7 +101,7 @@ export async function runNikonAlignmentTests() {
         const pixels = canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height).data
         assert(pixels.every((value, index) => index % 4 !== 3 || value === originalPixels[index]), 'Changing color must preserve every visible pixel position')
       }
-      results.push({ height, scale, centers: [nikon.center, z.center, f.center] })
+      results.push({ height, scale, centers: [nikon.center, z.center, f.center], finalCenters: [finalNikon.center, finalZ.center, finalF.center] })
     }
 
     const processors = new Map([

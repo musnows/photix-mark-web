@@ -1,6 +1,7 @@
 import { ImageProcessor, type ProcessorContext } from './types'
 import { createCanvas, drawText, loadImage, parseColor } from '~/utils/canvas'
 import { renderTemplate } from './templateRenderer'
+import { alignInkLayer, getInkCenterY } from '~/utils/inkAlignment'
 
 /**
  * 多段富文本处理器
@@ -61,36 +62,46 @@ export class MultiRichTextProcessor extends ImageProcessor {
         const scale = Number(seg.image_scale)
         const imageHeight = baseImageHeight * (Number.isFinite(scale) && scale > 0 ? scale : 1)
         const imageWidth = Math.ceil(imageHeight * aspectRatio)
-        const imageCanvas = createCanvas(imageWidth, Math.ceil(imageHeight))
+        const rasterScale = 4
+        const imageCanvas = createCanvas(imageWidth * rasterScale, Math.ceil(imageHeight * rasterScale))
         const imageCtx = imageCanvas.getContext('2d')!
-        imageCtx.drawImage(image, 0, 0, imageWidth, imageHeight)
+        imageCtx.drawImage(image, 0, 0, imageWidth * rasterScale, imageHeight * rasterScale)
         imageCtx.globalCompositeOperation = 'source-in'
         imageCtx.fillStyle = parseColor(seg.color)
         imageCtx.fillRect(0, 0, imageCanvas.width, imageCanvas.height)
-        const pixels = imageCtx.getImageData(0, 0, imageCanvas.width, imageCanvas.height).data
-        let top = imageCanvas.height
-        let bottom = -1
-        for (let y = 0; y < imageCanvas.height; y++) {
-          for (let x = 0; x < imageCanvas.width; x++) {
-            if (pixels[(y * imageCanvas.width + x) * 4 + 3] > 0) {
-              top = Math.min(top, y)
-              bottom = Math.max(bottom, y)
-              break
-            }
-          }
-        }
-        const centerY = bottom >= top ? (top + bottom + 1) / 2 : imageCanvas.height / 2
-        return { ...seg, width, imageCanvas, centerY }
+        return { ...seg, width, imageCanvas, imageWidth, imageHeight }
       }
 
       const fontWeight = seg.is_bold ? '700' : '300'
       const fontFamily = '"Alibaba PuHuiTi", Arial, sans-serif'
       tempCtx.font = `${fontWeight} ${fontSize}px ${fontFamily}`
       const metrics = tempCtx.measureText(seg.text)
+      const width = Math.ceil(metrics.width)
+      const baselineOffset = (metrics.actualBoundingBoxAscent - metrics.actualBoundingBoxDescent) / 2
+      const glyphPadding = 2
+      const glyphWidth = width + glyphPadding * 2
+      const glyphHeight = height + glyphPadding * 2
+      const glyphCanvas = createCanvas(glyphWidth * 4, Math.ceil(glyphHeight * 4))
+      const glyphCtx = glyphCanvas.getContext('2d')!
+      glyphCtx.scale(4, 4)
+      drawText(glyphCtx, {
+        text: seg.text,
+        x: glyphPadding,
+        y: height / 2 + glyphPadding + baselineOffset,
+        align: 'left',
+        baseline: 'alphabetic',
+        color: parseColor(seg.color),
+        fontSize,
+        fontWeight: seg.is_bold ? '700' : '300',
+        fontFamily: '"Alibaba PuHuiTi", Arial, sans-serif'
+      })
       return {
         ...seg,
-        width: Math.ceil(metrics.width),
-        baselineOffset: (metrics.actualBoundingBoxAscent - metrics.actualBoundingBoxDescent) / 2
+        width,
+        glyphCanvas,
+        glyphPadding,
+        glyphWidth,
+        glyphHeight
       }
     }))
 
@@ -104,29 +115,36 @@ export class MultiRichTextProcessor extends ImageProcessor {
     const tCtx = textCanvas.getContext('2d')!
 
     // 绘制每段文本
-    let currentX = padding
-    segmentMetrics.forEach((seg: any) => {
+    const renderSegment = (seg: any, currentX: number, offsetY: number) => {
+      const layer = createCanvas(textCanvas.width, textCanvas.height)
+      const layerCtx = layer.getContext('2d', { willReadFrequently: true })!
       if (seg.imageCanvas) {
-        tCtx.drawImage(
+        layerCtx.drawImage(
           seg.imageCanvas,
-          currentX + (seg.width - seg.imageCanvas.width) / 2,
-          padding + height / 2 - seg.centerY
+          currentX + (seg.width - seg.imageWidth) / 2,
+          padding + (height - seg.imageHeight) / 2 + offsetY,
+          seg.imageWidth,
+          seg.imageHeight
         )
-        currentX += seg.width + textSpacing
-        return
+        return layer
       }
 
-      drawText(tCtx, {
-        text: seg.text,
-        x: currentX,
-        y: height / 2 + padding + seg.baselineOffset,
-        align: 'left',
-        baseline: 'alphabetic',
-        color: parseColor(seg.color),
-        fontSize,
-        fontWeight: seg.is_bold ? '700' : '300',
-        fontFamily: '"Alibaba PuHuiTi", Arial, sans-serif'
-      })
+      layerCtx.drawImage(
+        seg.glyphCanvas,
+        currentX - seg.glyphPadding,
+        padding - seg.glyphPadding + offsetY,
+        seg.glyphWidth,
+        seg.glyphHeight
+      )
+      return layer
+    }
+    let currentX = padding
+    let inkCenter: number | undefined
+    segmentMetrics.forEach((seg: any) => {
+      const render = (offsetY: number) => renderSegment(seg, currentX, offsetY)
+      const layer = inkCenter === undefined ? render(0) : alignInkLayer(render, inkCenter)
+      inkCenter ??= getInkCenterY(layer)
+      tCtx.drawImage(layer, 0, 0)
       currentX += seg.width + textSpacing
     })
 

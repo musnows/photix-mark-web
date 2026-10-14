@@ -68,7 +68,7 @@ export class AlignmentProcessor extends ImageProcessor {
     )
 
     // 绘制顶层
-    mCtx.drawImage(overlayCanvas, x, y)
+    mCtx.drawImage(overlayCanvas, config.pixel_align ? Math.round(x) : x, config.pixel_align ? Math.round(y) : y)
 
     // 添加合并结果到 buffer（不清空其他层）
     ctx.buffer.push(mergedCanvas)

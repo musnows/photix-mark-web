@@ -63,6 +63,7 @@ export const nikonBlur: TemplateConfig = {
     {
       processor_name: 'concat',
       alignment: 'center',
+      pixel_align: true,
       spacing: 0.03,  // vh(3)
       direction: 'vertical',
       select: [1, 2]  // 选择两个文字层
@@ -109,6 +110,7 @@ export const nikonBlur: TemplateConfig = {
     // 8. 将文字叠加在底部
     {
       processor_name: 'alignment',
+      pixel_align: true,
       horizontal_alignment: 'center',
       vertical_alignment: 'bottom',
       weights: [0, -8],
