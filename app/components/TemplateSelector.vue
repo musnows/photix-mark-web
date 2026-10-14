@@ -98,7 +98,7 @@
     <div class="mt-2 rounded-lg border border-dashed border-border bg-muted/30 px-3 py-2 text-[11px] leading-5 text-muted-foreground sm:text-xs">
       想要更多模板？有BUG？可以到
       <a
-        href="https://github.com/LeoonLiang/photix-mark-web/issues/4"
+        href="https://github.com/musnows/photix-mark-web/issues"
         target="_blank"
         rel="noopener noreferrer"
         class="font-medium text-primary underline-offset-2 hover:underline"

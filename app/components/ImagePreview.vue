@@ -70,7 +70,7 @@
               v-if="previewUrls.get(file)"
               :src="previewUrls.get(file)"
               :alt="file.name"
-              class="w-full h-full object-contain bg-gray-100"
+              class="w-full h-full object-contain bg-muted"
             />
             <div v-else class="w-full h-full flex items-center justify-center">
               <svg class="animate-spin w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">

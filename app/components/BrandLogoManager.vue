@@ -55,8 +55,9 @@
             <button
               v-if="customLogos.has('')"
               @click="removeCustomLogo('')"
-              class="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-all flex-shrink-0"
-              title="删除自定义Logo"
+              class="p-1.5 text-red-400 hover:text-red-600 hover:bg-destructive/10 rounded-md transition-all flex-shrink-0"
+              title="恢复默认 Logo"
+              aria-label="恢复默认 Logo"
             >
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -87,6 +88,7 @@
           </svg>
           {{ customLogos.has('') ? '更换 Logo' : '上传 Logo' }}
         </button>
+        <BuiltinLogoDialog brand="" :selected="customLogos.get('')" @select="selectBuiltinLogo('', $event)" />
       </div>
 
       <!-- 各品牌 -->
@@ -135,8 +137,9 @@
             <button
               v-if="customLogos.has(brand)"
               @click="removeCustomLogo(brand)"
-              class="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-all flex-shrink-0"
-              title="删除自定义Logo"
+              class="p-1.5 text-red-400 hover:text-red-600 hover:bg-destructive/10 rounded-md transition-all flex-shrink-0"
+              title="恢复默认 Logo"
+              aria-label="恢复默认 Logo"
             >
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -167,6 +170,7 @@
           </svg>
           {{ customLogos.has(brand) ? '更换 Logo' : (getLogoUrl(brand) ? '替换 Logo' : '上传 Logo') }}
         </button>
+        <BuiltinLogoDialog :brand="brand" :selected="getLogoUrl(brand)" @select="selectBuiltinLogo(brand, $event)" />
       </div>
     </div>
   </div>
@@ -189,6 +193,12 @@ const emit = defineEmits<{
 
 // 文件上传input引用
 const fileInputRefs = ref(new Map<string, HTMLInputElement>())
+
+function selectBuiltinLogo(brand: string, path: string) {
+  const newLogos = withUploadedLogo(props.customLogos, brand, path)
+  emit('update:customLogos', newLogos)
+  emit('logoUploaded', brand, newLogos)
+}
 
 // 按图片数量排序品牌
 const sortedBrands = computed(() => {

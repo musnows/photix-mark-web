@@ -1,16 +1,16 @@
 <template>
-  <div class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
+  <div class="fixed top-16 right-3 z-50 flex flex-col gap-2 pointer-events-none">
     <TransitionGroup name="toast">
       <div
         v-for="toast in toasts"
         :key="toast.id"
         :class="[
           'pointer-events-auto px-4 py-3 rounded-lg shadow-lg backdrop-blur-sm',
-          'flex items-center gap-2 min-w-[200px] max-w-[400px]',
+          'flex items-center gap-2 min-w-[200px] max-w-[min(400px,calc(100vw-24px))]',
           'transition-all duration-300',
-          toast.type === 'success' ? 'bg-green-500/90 text-white' :
-          toast.type === 'error' ? 'bg-red-500/90 text-white' :
-          'bg-blue-500/90 text-white'
+          toast.type === 'success' ? 'bg-green-700/95 text-white dark:bg-green-900/95 dark:text-green-100' :
+          toast.type === 'error' ? 'bg-red-700/95 text-white dark:bg-red-900/95 dark:text-red-100' :
+          'bg-blue-700/95 text-white dark:bg-blue-900/95 dark:text-blue-100'
         ]"
       >
         <!-- 图标 -->

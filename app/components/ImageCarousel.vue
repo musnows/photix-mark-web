@@ -25,10 +25,10 @@
       />
       <!-- 初始加载状态 -->
       <div v-else class="flex flex-col items-center justify-center">
-        <svg class="animate-spin w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="animate-spin w-12 h-12 text-muted-foreground mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
         </svg>
-        <p class="text-gray-500">加载中...</p>
+        <p class="text-muted-foreground">加载中...</p>
       </div>
 
       <!-- EXIF 信息卡片 - 按钮悬浮在右上角 -->
@@ -42,9 +42,9 @@
           @click="toggleExifModal"
           :class="[
             'flex items-center gap-2 px-3 py-2 rounded-xl transition-all',
-            'bg-black/60 backdrop-blur-xl border border-white/20',
-            'hover:bg-black/70 hover:border-white/30',
-            'text-white text-xs font-medium shadow-lg'
+            'bg-background/90 backdrop-blur-xl border border-border',
+            'hover:bg-accent hover:border-ring',
+            'text-foreground text-xs font-medium shadow-lg'
           ]"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -76,152 +76,158 @@
 
             <!-- EXIF 内容卡片 -->
             <div
-              class="relative bg-black/90 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl overflow-hidden max-w-md w-full max-h-[85vh]"
+              role="dialog" aria-label="拍摄 EXIF 信息" aria-modal="true"
+              class="relative bg-card text-card-foreground backdrop-blur-xl rounded-2xl border border-border shadow-2xl overflow-hidden max-w-md w-full max-h-[85vh]"
+              @keydown.esc.stop="closeExifModal"
               @click.stop
             >
               <!-- Header -->
-              <div class="flex items-center justify-between p-4 border-b border-white/10">
+              <div class="flex items-center justify-between p-4 border-b border-border">
                 <div class="flex items-center gap-2">
-                  <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div class="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
+                    <svg class="w-4 h-4 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <span class="font-semibold text-white">EXIF 信息</span>
+                  <span class="font-semibold text-foreground">EXIF 信息</span>
                 </div>
+                <div class="flex items-center gap-2">
+                <FullExifDialog v-if="currentFile" :file="currentFile" />
                 <button
+                  aria-label="关闭 EXIF 信息"
                   @click="closeExifModal"
-                  class="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+                  class="p-1.5 hover:bg-muted rounded-lg transition-colors"
                 >
-                  <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg class="w-5 h-5 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
+                </div>
               </div>
 
               <!-- Content -->
               <div class="p-4 space-y-3 text-xs overflow-y-auto custom-scrollbar" style="max-height: calc(85vh - 64px);">
                 <div
                   v-if="!hasReadableExifContent"
-                  class="rounded-xl border border-amber-300/20 bg-amber-400/10 px-3 py-2 text-[11px] text-amber-100"
+                  class="rounded-xl border border-amber-300/20 bg-amber-400/10 px-3 py-2 text-[11px] text-amber-800 dark:text-amber-200"
                 >
                   当前图片没有读到可用 EXIF 信息，可以直接在这里手动填写。
                 </div>
 
                 <!-- 相机信息 -->
                 <div class="space-y-2">
-                  <div class="flex items-center gap-2 mb-2 pb-2 border-b border-white/10">
-                    <div class="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center">
-                      <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div class="flex items-center gap-2 mb-2 pb-2 border-b border-border">
+                    <div class="w-6 h-6 rounded-lg bg-muted flex items-center justify-center">
+                      <svg class="w-3.5 h-3.5 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
                     </div>
-                    <span class="font-semibold text-white text-sm">相机信息</span>
+                    <span class="font-semibold text-foreground text-sm">相机信息</span>
                   </div>
                   <div class="flex justify-between items-center py-1">
-                    <span class="text-white/60">品牌</span>
+                    <span class="text-muted-foreground">品牌</span>
                     <input
                       :value="exifDraft.Make || ''"
                       @input="updateExifField('Make', ($event.target as HTMLInputElement).value)"
                       placeholder="未找到"
-                      class="w-40 rounded-lg border border-white/10 bg-white/10 px-2 py-1 text-right text-white placeholder:text-white/40 focus:border-white/30 focus:outline-none"
+                      class="w-40 rounded-lg border border-border bg-muted px-2 py-1 text-right text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
                     />
                   </div>
                   <div class="flex justify-between items-center py-1">
-                    <span class="text-white/60">型号</span>
+                    <span class="text-muted-foreground">型号</span>
                     <input
                       :value="exifDraft.Model || ''"
                       @input="updateExifField('Model', ($event.target as HTMLInputElement).value)"
                       placeholder="未找到"
-                      class="w-40 rounded-lg border border-white/10 bg-white/10 px-2 py-1 text-right text-white placeholder:text-white/40 focus:border-white/30 focus:outline-none"
+                      class="w-40 rounded-lg border border-border bg-muted px-2 py-1 text-right text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
                     />
                   </div>
                   <div class="flex justify-between items-center py-1">
-                    <span class="text-white/60">镜头</span>
+                    <span class="text-muted-foreground">镜头</span>
                     <input
                       :value="exifDraft.LensModel || ''"
                       @input="updateExifField('LensModel', ($event.target as HTMLInputElement).value)"
                       placeholder="未找到"
-                      class="w-40 rounded-lg border border-white/10 bg-white/10 px-2 py-1 text-right text-white placeholder:text-white/40 focus:border-white/30 focus:outline-none"
+                      class="w-40 rounded-lg border border-border bg-muted px-2 py-1 text-right text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
                     />
                   </div>
                 </div>
 
                 <!-- 拍摄参数 -->
                 <div class="space-y-2">
-                  <div class="flex items-center gap-2 mb-2 pb-2 border-b border-white/10">
+                  <div class="flex items-center gap-2 mb-2 pb-2 border-b border-border">
                     <div class="w-6 h-6 rounded-lg bg-primary/20 flex items-center justify-center">
                       <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                       </svg>
                     </div>
-                    <span class="font-semibold text-white text-sm">拍摄参数</span>
+                    <span class="font-semibold text-foreground text-sm">拍摄参数</span>
                   </div>
                   <div class="flex justify-between items-center py-1">
-                    <span class="text-white/60">焦距</span>
+                    <span class="text-muted-foreground">焦距</span>
                     <input
                       :value="exifDraft.FocalLength ?? ''"
                       @input="updateExifField('FocalLength', ($event.target as HTMLInputElement).value)"
                       inputmode="decimal"
                       placeholder="未找到"
-                      class="w-28 rounded-lg border border-white/10 bg-white/10 px-2 py-1 text-right text-white placeholder:text-white/40 focus:border-white/30 focus:outline-none"
+                      class="w-28 rounded-lg border border-border bg-muted px-2 py-1 text-right text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
                     />
                   </div>
                   <div class="flex justify-between items-center py-1">
-                    <span class="text-white/60">光圈</span>
+                    <span class="text-muted-foreground">光圈</span>
                     <input
                       :value="exifDraft.FNumber ?? ''"
                       @input="updateExifField('FNumber', ($event.target as HTMLInputElement).value)"
                       inputmode="decimal"
                       placeholder="未找到"
-                      class="w-28 rounded-lg border border-white/10 bg-white/10 px-2 py-1 text-right text-white placeholder:text-white/40 focus:border-white/30 focus:outline-none"
+                      class="w-28 rounded-lg border border-border bg-muted px-2 py-1 text-right text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
                     />
                   </div>
                   <div class="flex justify-between items-center py-1">
-                    <span class="text-white/60">快门</span>
+                    <span class="text-muted-foreground">快门</span>
                     <input
                       :value="exifDraft.ExposureTime ?? ''"
                       @input="updateExifField('ExposureTime', ($event.target as HTMLInputElement).value)"
                       inputmode="decimal"
                       placeholder="未找到"
-                      class="w-28 rounded-lg border border-white/10 bg-white/10 px-2 py-1 text-right text-white placeholder:text-white/40 focus:border-white/30 focus:outline-none"
+                      class="w-28 rounded-lg border border-border bg-muted px-2 py-1 text-right text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
                     />
                   </div>
                   <div class="flex justify-between items-center py-1">
-                    <span class="text-white/60">ISO</span>
+                    <span class="text-muted-foreground">ISO</span>
                     <input
                       :value="exifDraft.ISO ?? ''"
                       @input="updateExifField('ISO', ($event.target as HTMLInputElement).value)"
                       inputmode="numeric"
                       placeholder="未找到"
-                      class="w-28 rounded-lg border border-white/10 bg-white/10 px-2 py-1 text-right text-white placeholder:text-white/40 focus:border-white/30 focus:outline-none"
+                      class="w-28 rounded-lg border border-border bg-muted px-2 py-1 text-right text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
                     />
                   </div>
                 </div>
 
                 <!-- 其他信息 -->
                 <div class="space-y-2">
-                  <div class="flex items-center gap-2 mb-2 pb-2 border-b border-white/10">
-                    <div class="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center">
-                      <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div class="flex items-center gap-2 mb-2 pb-2 border-b border-border">
+                    <div class="w-6 h-6 rounded-lg bg-muted flex items-center justify-center">
+                      <svg class="w-3.5 h-3.5 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
-                    <span class="font-semibold text-white text-sm">其他信息</span>
+                    <span class="font-semibold text-foreground text-sm">其他信息</span>
                   </div>
                   <div class="flex justify-between items-center py-1">
-                    <span class="text-white/60">拍摄时间</span>
+                    <span class="text-muted-foreground">拍摄时间</span>
                     <input
                       :value="exifDraft.DateTimeOriginal || ''"
                       @input="updateExifField('DateTimeOriginal', ($event.target as HTMLInputElement).value)"
                       placeholder="2026-10-12 14:30:45"
-                      class="w-44 rounded-lg border border-white/10 bg-white/10 px-2 py-1 text-right text-[10px] text-white placeholder:text-white/40 focus:border-white/30 focus:outline-none"
+                      class="w-44 rounded-lg border border-border bg-muted px-2 py-1 text-right text-[10px] text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
                     />
                   </div>
                   <div class="flex justify-between items-center py-1">
-                    <span class="text-white/60">图片尺寸</span>
-                    <span :class="imageSizeText ? 'text-white font-medium' : 'text-white/40'">
+                    <span class="text-muted-foreground">图片尺寸</span>
+                    <span :class="imageSizeText ? 'text-foreground font-medium' : 'text-muted-foreground'">
                       {{ imageSizeText || '未找到' }}
                     </span>
                   </div>
@@ -714,16 +720,16 @@ function openPreview() {
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
+  background: hsl(var(--muted));
   border-radius: 2px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.3);
+  background: hsl(var(--muted-foreground) / 0.4);
   border-radius: 2px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.4);
+  background: hsl(var(--muted-foreground) / 0.6);
 }
 </style>

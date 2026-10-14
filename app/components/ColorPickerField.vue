@@ -158,7 +158,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .color-picker-trigger {
-  @apply inline-flex h-8 min-w-[92px] items-center gap-2 rounded-lg border border-slate-200 bg-white px-2 py-1 text-left transition hover:border-slate-300 sm:h-10 sm:min-w-[124px] sm:rounded-xl sm:px-3;
+  @apply inline-flex h-8 min-w-[92px] items-center gap-2 rounded-lg border border-border bg-card px-2 py-1 text-left transition hover:border-input sm:h-10 sm:min-w-[124px] sm:rounded-xl sm:px-3;
 }
 
 .color-picker-trigger:disabled {
@@ -166,11 +166,11 @@ onBeforeUnmount(() => {
 }
 
 .color-picker-chip {
-  @apply h-4 w-4 shrink-0 rounded-full border border-slate-200 shadow-inner sm:h-5 sm:w-5;
+  @apply h-4 w-4 shrink-0 rounded-full border border-border shadow-inner sm:h-5 sm:w-5;
 }
 
 .color-picker-value {
-  @apply truncate text-[11px] font-medium uppercase tracking-[0.04em] text-slate-600 sm:text-xs;
+  @apply truncate text-[11px] font-medium uppercase tracking-[0.04em] text-muted-foreground sm:text-xs;
 }
 </style>
 

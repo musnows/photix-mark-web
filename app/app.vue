@@ -2,6 +2,7 @@
   <div>
     <NuxtPage />
     <Toast />
+    <ThemeToggle />
   </div>
 </template>
 

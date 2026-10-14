@@ -19,6 +19,7 @@
 
 @layer base {
   :root {
+    color-scheme: light;
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -42,6 +43,7 @@
   }
 
   .dark {
+    color-scheme: dark;
     --background: 220 15% 10%;
     --foreground: 210 20% 90%;
     --card: 220 15% 14%;
@@ -69,8 +71,29 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
   }
+}
+
+.pcr-app.photix-pickr-app {
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+}
+
+.pcr-app.photix-pickr-app .pcr-interaction .pcr-result {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--input));
+}
+
+.pcr-app.photix-pickr-app .pcr-interaction .pcr-type {
+  background: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+}
+
+.pcr-app.photix-pickr-app .pcr-interaction .pcr-type.active {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
 }
 
 /* 移动端优化样式 */

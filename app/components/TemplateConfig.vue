@@ -1,14 +1,14 @@
 <template>
   <div class="space-y-3 sm:space-y-4">
-    <div class="rounded-xl border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-slate-100/80 p-3 shadow-sm sm:rounded-2xl sm:p-4">
+    <div class="rounded-xl border border-border bg-gradient-to-br from-card via-muted/30 to-muted/80 p-3 shadow-sm sm:rounded-2xl sm:p-4">
       <div class="flex flex-col items-start gap-2.5 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
         <div>
-          <p class="text-[13px] font-semibold text-slate-900 sm:text-sm">模板参数</p>
-          <p class="mt-1 text-[11px] text-slate-500 sm:text-xs">只显示当前模板支持的配置项</p>
+          <p class="text-[13px] font-semibold text-foreground sm:text-sm">模板参数</p>
+          <p class="mt-1 text-[11px] text-muted-foreground sm:text-xs">只显示当前模板支持的配置项</p>
         </div>
         <button
           @click="resetAll"
-          class="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-900 sm:px-3 sm:py-1.5 sm:text-xs"
+          class="rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition hover:border-input hover:text-foreground sm:px-3 sm:py-1.5 sm:text-xs"
         >
           恢复默认
         </button>
@@ -32,7 +32,7 @@
               @click="updateConfig('nikonZColor', option.value)"
             >
               <span
-                class="mr-1 inline-block h-2.5 w-2.5 rounded-full border border-slate-300 align-middle"
+                class="mr-1 inline-block h-2.5 w-2.5 rounded-full border border-input align-middle"
                 :style="{ backgroundColor: option.value }"
                 aria-hidden="true"
               />
@@ -304,7 +304,7 @@
             @input="updateConfig('vignetteStrength', Number(($event.target as HTMLInputElement).value))"
             class="slider-input disabled:opacity-40"
           />
-          <p class="text-[11px] text-slate-500 sm:text-xs">0% 无暗角，100% 最强；仅影响模糊背景</p>
+          <p class="text-[11px] text-muted-foreground sm:text-xs">0% 无暗角，100% 最强；仅影响模糊背景</p>
         </div>
       </div>
     </section>
@@ -471,7 +471,7 @@
           拍摄时间
         </button>
       </div>
-      <div v-if="hasExifField('showDateTime') && localConfig.showDateTime" class="mt-3 space-y-2 border-t border-slate-100 pt-3">
+      <div v-if="hasExifField('showDateTime') && localConfig.showDateTime" class="mt-3 space-y-2 border-t border-border/60 pt-3">
         <div class="range-head">
           <span class="field-label">拍摄时间格式</span>
           <button @click="resetDateTimeFormat" class="reset-chip">重置</button>
@@ -485,8 +485,8 @@
             @click="updateConfig('dateTimeFormat', option.value)"
             class="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 rounded-xl border px-3 py-2 text-left transition"
             :class="localConfig.dateTimeFormat === option.value
-              ? 'border-slate-900 bg-slate-900 text-white'
-              : 'border-slate-200 bg-white text-slate-600 hover:border-slate-400'"
+              ? 'border-foreground bg-foreground text-background'
+              : 'border-border bg-card text-muted-foreground hover:border-ring'"
           >
             <span class="text-[11px]">{{ option.label }}</span>
             <span class="text-[11px] tabular-nums">{{ option.example }}</span>
@@ -499,8 +499,8 @@
             @click="applyCustomDateTimeFormat(format)"
             class="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 rounded-xl border px-3 py-2 text-left text-[11px] transition"
             :class="localConfig.dateTimeFormat === 'custom' && localConfig.customDateTimeFormat === format
-              ? 'border-slate-900 bg-slate-900 text-white'
-              : 'border-slate-200 bg-white text-slate-600 hover:border-slate-400'"
+              ? 'border-foreground bg-foreground text-background'
+              : 'border-border bg-card text-muted-foreground hover:border-ring'"
           >
             <span class="min-w-0 break-all">{{ format }}</span>
             <span class="min-w-0 break-all tabular-nums">{{ formatDateTimeValue('2026-10-12T14:30:45+08:00', 'custom', format) }}</span>
@@ -510,7 +510,7 @@
             @apply="applyCustomDateTimeFormat"
           />
         </div>
-        <p class="text-[10px] leading-relaxed text-slate-400">默认精确到秒；若照片未记录秒数，则保留原有精度。</p>
+        <p class="text-[10px] leading-relaxed text-muted-foreground">默认精确到秒；若照片未记录秒数，则保留原有精度。</p>
       </div>
     </section>
   </div>
@@ -716,8 +716,8 @@ function pillClass(active: boolean) {
   return [
     'rounded-full border px-2.5 py-1 text-[11px] font-medium transition-all sm:px-3 sm:py-1.5 sm:text-xs',
     active
-      ? 'border-slate-900 bg-slate-900 text-white shadow-sm'
-      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900'
+      ? 'border-foreground bg-foreground text-background shadow-sm'
+      : 'border-border bg-card text-muted-foreground hover:border-input hover:text-foreground'
   ]
 }
 
@@ -725,14 +725,14 @@ function toggleClass(active: boolean) {
   return [
     'relative inline-flex h-5 w-9 items-center rounded-full border transition sm:h-6 sm:w-11',
     active
-      ? 'border-slate-900 bg-slate-900'
-      : 'border-slate-300 bg-slate-200'
+      ? 'border-foreground bg-foreground'
+      : 'border-border bg-muted'
   ]
 }
 
 function toggleKnobClass(active: boolean) {
   return [
-    'inline-block h-[14px] w-[14px] rounded-full bg-white transition sm:h-4 sm:w-4',
+    'inline-block h-[14px] w-[14px] rounded-full bg-card transition sm:h-4 sm:w-4',
     active ? 'translate-x-[18px] sm:translate-x-6' : 'translate-x-0.5 sm:translate-x-1'
   ]
 }
@@ -751,7 +751,7 @@ watch(() => props.modelValue, (value) => {
 
 <style scoped>
 .config-card {
-  @apply rounded-xl border border-slate-200 bg-white/95 p-3 shadow-sm shadow-slate-200/60 sm:rounded-2xl sm:p-4;
+  @apply rounded-xl border border-border bg-card/95 p-3 shadow-sm shadow-foreground/5 sm:rounded-2xl sm:p-4;
 }
 
 .section-head {
@@ -759,19 +759,19 @@ watch(() => props.modelValue, (value) => {
 }
 
 .section-title {
-  @apply text-[13px] font-semibold text-slate-900 sm:text-sm;
+  @apply text-[13px] font-semibold text-foreground sm:text-sm;
 }
 
 .field-row {
-  @apply flex items-center justify-between gap-2 rounded-xl border border-slate-100 bg-slate-50/80 px-2.5 py-2 sm:gap-3 sm:rounded-2xl sm:px-3 sm:py-2.5;
+  @apply flex items-center justify-between gap-2 rounded-xl border border-border/60 bg-muted/50 px-2.5 py-2 sm:gap-3 sm:rounded-2xl sm:px-3 sm:py-2.5;
 }
 
 .toggle-row {
-  @apply flex items-center justify-between gap-2 rounded-xl border border-slate-100 bg-slate-50/80 px-2.5 py-2 sm:gap-3 sm:rounded-2xl sm:px-3 sm:py-3;
+  @apply flex items-center justify-between gap-2 rounded-xl border border-border/60 bg-muted/50 px-2.5 py-2 sm:gap-3 sm:rounded-2xl sm:px-3 sm:py-3;
 }
 
 .field-label {
-  @apply min-w-0 flex-1 text-[13px] font-medium text-slate-700 sm:flex-none sm:text-sm;
+  @apply min-w-0 flex-1 text-[13px] font-medium text-foreground sm:flex-none sm:text-sm;
 }
 
 .field-actions {
@@ -787,19 +787,19 @@ watch(() => props.modelValue, (value) => {
 }
 
 .reset-chip {
-  @apply rounded-full border border-slate-200 bg-white px-2 py-1 text-[11px] font-medium leading-none text-slate-500 transition hover:border-slate-300 hover:text-slate-900 sm:px-2.5 sm:text-xs;
+  @apply rounded-full border border-border bg-card px-2 py-1 text-[11px] font-medium leading-none text-muted-foreground transition hover:border-input hover:text-foreground sm:px-2.5 sm:text-xs;
 }
 
 .value-pill {
-  @apply rounded-full bg-slate-100 px-2 py-1 text-[11px] font-medium leading-none text-slate-600 sm:px-2.5 sm:text-xs;
+  @apply rounded-full bg-muted px-2 py-1 text-[11px] font-medium leading-none text-muted-foreground sm:px-2.5 sm:text-xs;
 }
 
 .slider-input {
-  @apply h-2 w-full cursor-pointer appearance-none rounded-full bg-slate-200;
+  @apply h-2 w-full cursor-pointer appearance-none rounded-full bg-border;
 }
 
 .text-area-input {
-  @apply w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-[13px] font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-slate-400 sm:rounded-2xl sm:text-sm;
+  @apply w-full resize-none rounded-xl border border-border bg-card px-3 py-2 text-[13px] font-medium text-foreground outline-none transition placeholder:text-muted-foreground focus:border-ring sm:rounded-2xl sm:text-sm;
 }
 
 .range-head {
@@ -819,8 +819,8 @@ watch(() => props.modelValue, (value) => {
   width: 18px;
   height: 18px;
   border-radius: 9999px;
-  background: #0f172a;
-  border: 2px solid white;
+  background: hsl(var(--foreground));
+  border: 2px solid hsl(var(--card));
   box-shadow: 0 2px 10px rgba(15, 23, 42, 0.2);
 }
 
@@ -828,8 +828,8 @@ watch(() => props.modelValue, (value) => {
   width: 18px;
   height: 18px;
   border-radius: 9999px;
-  background: #0f172a;
-  border: 2px solid white;
+  background: hsl(var(--foreground));
+  border: 2px solid hsl(var(--card));
   box-shadow: 0 2px 10px rgba(15, 23, 42, 0.2);
 }
 

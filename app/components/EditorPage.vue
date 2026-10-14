@@ -1,7 +1,7 @@
 <template>
   <div class="h-screen flex flex-col bg-background overflow-hidden">
     <!-- Header - 桌面端 -->
-    <header class="bg-background/80 backdrop-blur-xl border-b border-border h-16 flex-shrink-0 items-center px-6 shadow-sm hidden lg:flex">
+    <header class="bg-background/80 backdrop-blur-xl border-b border-border h-16 flex-shrink-0 items-center pl-6 pr-20 shadow-sm hidden lg:flex">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 flex items-center justify-center">
           <img src="/logo.svg" alt="Photix Mark Logo" class="w-full h-full object-contain" />
@@ -23,7 +23,7 @@
     </header>
 
     <!-- Mobile Header - 移动端简化版 -->
-    <header class="bg-background/95 backdrop-blur-xl border-b border-border h-12 flex-shrink-0 flex items-center justify-between px-3 shadow-sm lg:hidden">
+    <header class="bg-background/95 backdrop-blur-xl border-b border-border h-12 flex-shrink-0 flex items-center justify-between pl-3 pr-16 shadow-sm lg:hidden">
       <!-- 返回按钮 -->
       <button @click="$emit('reset')" class="p-2 hover:bg-muted rounded-lg transition-colors">
         <svg class="w-5 h-5 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -58,7 +58,7 @@
       <div class="h-full grid grid-cols-12" style="gap: 16px;">
         <!-- Left: Image Carousel (70%) -->
         <div class="col-span-12 lg:col-span-8" style="min-height: 0;">
-          <div class="h-full bg-slate-100 backdrop-blur-xl shadow-lg shadow-primary/5 rounded-lg" style="overflow: hidden; padding: 12px;">
+          <div class="h-full bg-muted backdrop-blur-xl shadow-lg shadow-primary/5 rounded-lg" style="overflow: hidden; padding: 12px;">
             <ClientOnly>
               <ImageCarousel
                 :files="files"
@@ -84,7 +84,7 @@
           <div class="h-full overflow-y-auto space-y-4" style="padding-right: 4px;">
           <!-- Template Selection -->
           <Card class="bg-card/80 backdrop-blur-xl shadow-lg shadow-primary/5">
-            <CardHeader class="border-b bg-slate-100 py-3">
+            <CardHeader class="border-b bg-muted py-3">
               <CardTitle class="text-base">模板选择</CardTitle>
             </CardHeader>
             <CardContent>
@@ -98,7 +98,7 @@
 
           <!-- Template Configuration -->
           <Card v-if="currentTemplateId !== 'noProcess'" class="bg-card/80 backdrop-blur-xl shadow-lg shadow-primary/5">
-            <CardHeader class="border-b bg-slate-100 py-3">
+            <CardHeader class="border-b bg-muted py-3">
               <CardTitle class="text-base">模板配置</CardTitle>
             </CardHeader>
             <CardContent>
@@ -112,7 +112,7 @@
 
           <!-- Brand Logo Manager -->
           <Card v-if="files.length > 0" class="bg-card/80 backdrop-blur-xl shadow-lg shadow-primary/5">
-            <CardHeader class="border-b bg-slate-100 py-3">
+            <CardHeader class="border-b bg-muted py-3">
               <CardTitle class="text-base">品牌 Logo</CardTitle>
             </CardHeader>
             <CardContent>
