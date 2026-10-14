@@ -44,3 +44,23 @@ export function alignInkLayer(render: (offsetY: number) => HTMLCanvasElement, ta
   }
   return best
 }
+
+export function trimHorizontalInk(canvas: HTMLCanvasElement): HTMLCanvasElement {
+  const pixels = canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height).data
+  let left = canvas.width
+  let right = -1
+  for (let y = 0; y < canvas.height; y++) {
+    for (let x = 0; x < canvas.width; x++) {
+      if (pixels[(y * canvas.width + x) * 4 + 3] > 0) {
+        left = Math.min(left, x)
+        right = Math.max(right, x)
+      }
+    }
+  }
+  if (right < left) return canvas
+  const trimmed = document.createElement('canvas')
+  trimmed.width = right - left + 1
+  trimmed.height = canvas.height
+  trimmed.getContext('2d')!.drawImage(canvas, -left, 0)
+  return trimmed
+}

@@ -1,7 +1,7 @@
 import { ImageProcessor, type ProcessorContext } from './types'
 import { createCanvas, drawText, loadImage, parseColor } from '~/utils/canvas'
 import { renderTemplate } from './templateRenderer'
-import { alignInkLayer, getInkCenterY } from '~/utils/inkAlignment'
+import { alignInkLayer, getInkCenterY, trimHorizontalInk } from '~/utils/inkAlignment'
 
 /**
  * 多段富文本处理器
@@ -149,7 +149,7 @@ export class MultiRichTextProcessor extends ImageProcessor {
     })
 
     // 添加到 buffer
-    ctx.buffer.push(textCanvas)
+    ctx.buffer.push(config.trim_ink_x ? trimHorizontalInk(textCanvas) : textCanvas)
     return ctx
   }
 
