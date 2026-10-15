@@ -1,0 +1,99 @@
+name: Build and publish desktop release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS (Intel and Apple silicon)
+            platform: macos
+            runner: macos-14
+          - name: Windows (x64)
+            platform: windows
+            runner: windows-2022
+          - name: Linux (x64)
+            platform: linux
+            runner: ubuntu-22.04
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Set package version from release tag
+        shell: bash
+        run: npm version "${GITHUB_REF_NAME#v}" --no-git-tag-version --allow-same-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run release checks
+        run: npm run test:metadata && npm run test:desktop
+
+      - name: Build desktop application
+        run: npm run desktop:build
+
+      - name: Package macOS applications
+        if: matrix.platform == 'macos'
+        run: npx electron-builder --config electron-builder.config.cjs --mac --x64 --arm64
+
+      - name: Package Windows application
+        if: matrix.platform == 'windows'
+        run: npx electron-builder --config electron-builder.config.cjs --win --x64
+
+      - name: Package Linux application
+        if: matrix.platform == 'linux'
+        run: npx electron-builder --config electron-builder.config.cjs --linux --x64
+
+      - name: Upload desktop packages
+        uses: actions/upload-artifact@v6
+        with:
+          name: desktop-packages-${{ matrix.platform }}
+          path: |
+            release/**/*.dmg
+            release/**/*.zip
+            release/**/*.exe
+            release/**/*.AppImage
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Attach packages to GitHub Release
+    needs: build
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download desktop packages
+        uses: actions/download-artifact@v6
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Generate SHA-256 checksums
+        working-directory: release-assets
+        run: sha256sum * > SHA256SUMS.txt
+
+      - name: Publish release assets
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ github.event.release.tag_name }}
+          files: release-assets/*
+          fail_on_unmatched_files: true
+          overwrite_files: true
