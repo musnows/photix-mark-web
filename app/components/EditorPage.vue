@@ -1,7 +1,7 @@
 <template>
   <div class="h-screen flex flex-col bg-background overflow-hidden">
     <!-- Header - 桌面端 -->
-    <header class="bg-background/80 backdrop-blur-xl border-b border-border h-16 flex-shrink-0 items-center pl-6 pr-20 shadow-sm hidden lg:flex">
+    <header class="bg-background/80 backdrop-blur-xl border-b border-border h-16 flex-shrink-0 items-center pl-6 pr-6 shadow-sm hidden lg:flex">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 flex items-center justify-center">
           <img src="/logo.svg" alt="Photix Mark Logo" class="w-full h-full object-contain" />
@@ -12,7 +12,8 @@
         </div>
       </div>
 
-      <div class="ml-auto">
+      <div class="ml-auto flex items-center gap-2">
+        <ThemeToggle />
         <Button @click="$emit('reset')" variant="outline" size="sm">
           <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -23,13 +24,16 @@
     </header>
 
     <!-- Mobile Header - 移动端简化版 -->
-    <header class="bg-background/95 backdrop-blur-xl border-b border-border h-12 flex-shrink-0 flex items-center justify-between pl-3 pr-16 shadow-sm lg:hidden">
+    <header class="bg-background/95 backdrop-blur-xl border-b border-border h-12 flex-shrink-0 flex items-center justify-between pl-3 pr-3 shadow-sm lg:hidden">
+      <div class="flex items-center gap-1">
       <!-- 返回按钮 -->
       <button @click="$emit('reset')" class="p-2 hover:bg-muted rounded-lg transition-colors">
         <svg class="w-5 h-5 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>
       </button>
+        <ThemeToggle />
+      </div>
 
       <!-- 应用到全部按钮 -->
       <Button

@@ -2,7 +2,7 @@
   <button
     type="button"
     data-theme-toggle
-    class="pointer-events-auto fixed right-3 top-3 z-[10020] flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-md transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    class="pointer-events-auto relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     :aria-label="isDark ? '切换到白天模式' : '切换到黑夜模式'"
     :title="isDark ? '切换到白天模式' : '切换到黑夜模式'"
     :aria-pressed="isDark"
