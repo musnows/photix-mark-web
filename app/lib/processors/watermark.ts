@@ -1,5 +1,5 @@
 import { ImageProcessor, type ProcessorContext } from './types'
-import { createCanvas, drawText, drawLogo, parseColor } from '~/utils/canvas'
+import { createCanvas, drawText, loadImage, parseColor } from '~/utils/canvas'
 import { getLogoPath } from '~/utils/logoMapper'
 import { formatDateTimeValue, formatExifValue, formatShutterValue } from '~/lib/editor/exif'
 
@@ -184,29 +184,32 @@ export class WatermarkProcessor extends ImageProcessor {
       const logoPath = this.renderTemplate(config.right_logo, exif, config)
       console.log('[WatermarkProcessor] Logo path:', logoPath)
       if (logoPath) {
-        let logoX: number
+        try {
+          const logo = await loadImage(logoPath)
+          const logoWidth = logoSize * (logo.width / logo.height)
+          let logoX: number
 
-        if (logoPosition === 'center') {
-          // 居中显示
-          logoX = canvas.width / 2
-        } else if (logoPosition === 'left') {
-          // 左侧显示
-          logoX = commonSpacing + logoSize / 2
-        } else {
-          // 右侧显示（默认）- 增加右侧边距
-          logoX = canvas.width - logoRightMargin - logoSize / 2
-        }
+          if (logoPosition === 'center') {
+            // 居中显示
+            logoX = canvas.width / 2
+          } else if (logoPosition === 'left') {
+            // 左侧显示
+            logoX = commonSpacing + logoWidth / 2
+          } else {
+            // 右侧显示（默认）- 按 Logo 实际宽度留出右侧边距
+            logoX = canvas.width - logoRightMargin - logoWidth / 2
+          }
 
-        await drawLogo(wCtx, {
-          logoPath,
-          x: logoX,
-          y: watermarkY + watermarkHeight / 2,
-          size: logoSize
-        })
+          wCtx.save()
+          wCtx.drawImage(logo, logoX - logoWidth / 2, watermarkY + watermarkHeight / 2 - logoSize / 2, logoWidth, logoSize)
+          wCtx.restore()
 
-        // 只有右侧logo才需要预留空间
-        if (logoPosition === 'right') {
-          rightX = logoX - logoSize / 2 - commonSpacing
+          // 只有右侧logo才需要预留空间
+          if (logoPosition === 'right') {
+            rightX = logoX - logoWidth / 2 - commonSpacing
+          }
+        } catch (error) {
+          console.error('Failed to load logo:', error)
         }
       }
     }
