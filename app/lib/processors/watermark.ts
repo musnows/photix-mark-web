@@ -167,7 +167,7 @@ export class WatermarkProcessor extends ImageProcessor {
     }
 
     // 右侧位置计算（为 Logo 预留空间）
-    const logoSize = watermarkHeight * 0.8  // Logo 尺寸
+    const logoSize = watermarkHeight * 0.8  // Logo 基准宽度，保持与正方形 Logo 相同
     const showLogo = config.logoEnabled !== false  // 默认显示
     const logoPosition = config.logo_position || 'right'  // logo位置：left, center, right
 
@@ -186,7 +186,8 @@ export class WatermarkProcessor extends ImageProcessor {
       if (logoPath) {
         try {
           const logo = await loadImage(logoPath)
-          const logoWidth = logoSize * (logo.width / logo.height)
+          const logoWidth = logoSize
+          const logoHeight = logoWidth * (logo.height / logo.width)
           let logoX: number
 
           if (logoPosition === 'center') {
@@ -201,7 +202,7 @@ export class WatermarkProcessor extends ImageProcessor {
           }
 
           wCtx.save()
-          wCtx.drawImage(logo, logoX - logoWidth / 2, watermarkY + watermarkHeight / 2 - logoSize / 2, logoWidth, logoSize)
+          wCtx.drawImage(logo, logoX - logoWidth / 2, watermarkY + watermarkHeight / 2 - logoHeight / 2, logoWidth, logoHeight)
           wCtx.restore()
 
           // 只有右侧logo才需要预留空间
