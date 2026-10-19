@@ -1,6 +1,7 @@
 import type { ProcessorContext, ProcessorStep } from '~/lib/processors/types'
 import { getProcessor } from '~/lib/processors/registry'
 import { loadImageToCanvas } from '~/utils/canvas'
+import { embedHiddenWatermarkInCanvas } from '~/lib/watermark/hiddenWatermarkCanvas'
 import { useExif } from './useExif'
 import { prepareSignature, finishSignature } from '~/utils/signature'
 import { getDefaultSignatureAnchor } from '~/lib/editor/signature'
@@ -109,9 +110,23 @@ export function useImageProcessor() {
       }
     }
 
-    // 5. 返回最终 Canvas（通常是 buffer 的最后一层）
+    // 5. 生成最终 Canvas，并叠加签名等可见层
     const finalCanvas = context.buffer[context.buffer.length - 1] || context.buffer[0] || sourceCanvas
-    return finishSignature(finalCanvas, context.signature, userConfig?._signaturePreview === true)
+    const outputCanvas = await finishSignature(finalCanvas, context.signature, userConfig?._signaturePreview === true)
+
+    // 6. 在最终成片中写入不可见水印，确保裁剪边框后仍保留在主图区域
+    if (initialUserConfig.hiddenWatermarkEnabled) {
+      const marker = String(initialUserConfig.hiddenWatermarkText || '').trim()
+      if (marker) {
+        try {
+          embedHiddenWatermarkInCanvas(outputCanvas, marker)
+        } catch (error) {
+          console.error('[ImageProcessor] Failed to embed hidden watermark:', error)
+        }
+      }
+    }
+
+    return outputCanvas
   }
 
   return {

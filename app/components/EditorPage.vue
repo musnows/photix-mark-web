@@ -38,7 +38,7 @@
       <!-- 应用到全部按钮 -->
       <Button
         @click="applyToAll"
-        :disabled="processing || (currentTemplateId === 'noProcess' && !hasActiveSignature)"
+        :disabled="processing || !canApplyCurrentConfig"
         variant="secondary"
         size="sm"
         class="text-xs px-3 py-1.5 rounded-full"
@@ -124,6 +124,16 @@
             </CardContent>
           </Card>
 
+          <!-- Hidden Watermark -->
+          <Card class="bg-card/80 backdrop-blur-xl shadow-lg shadow-primary/5">
+            <CardHeader class="border-b bg-muted py-3">
+              <CardTitle class="text-base">隐藏水印</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <HiddenWatermarkConfig v-model="currentConfig" />
+            </CardContent>
+          </Card>
+
           <!-- Brand Logo Manager -->
           <Card v-if="files.length > 0" class="bg-card/80 backdrop-blur-xl shadow-lg shadow-primary/5">
             <CardHeader class="border-b bg-muted py-3">
@@ -146,7 +156,7 @@
             <div class="space-y-2">
               <Button
                 @click="applyToAll"
-                :disabled="processing || (currentTemplateId === 'noProcess' && !hasActiveSignature)"
+                :disabled="processing || !canApplyCurrentConfig"
                 class="w-full"
                 size="lg"
               >
@@ -158,7 +168,7 @@
 
               <Button
                 @click="applyToSelected"
-                :disabled="processing || (currentTemplateId === 'noProcess' && !hasActiveSignature)"
+                :disabled="processing || !canApplyCurrentConfig"
                 variant="outline"
                 class="w-full"
               >
@@ -245,6 +255,8 @@
               :exif="currentExif"
               v-model="currentConfig"
             />
+
+            <HiddenWatermarkConfig v-model="currentConfig" />
           </div>
 
           <div v-show="currentMobileTab === 'signature'" class="p-3">
@@ -268,7 +280,7 @@
           <div v-show="currentMobileTab === 'apply'" class="p-3 space-y-2">
             <Button
               @click="applyToAll"
-              :disabled="processing || (currentTemplateId === 'noProcess' && !hasActiveSignature)"
+              :disabled="processing || !canApplyCurrentConfig"
               class="w-full"
               size="lg"
             >
@@ -280,7 +292,7 @@
 
             <Button
               @click="applyToSelected"
-              :disabled="processing || (currentTemplateId === 'noProcess' && !hasActiveSignature)"
+              :disabled="processing || !canApplyCurrentConfig"
               variant="outline"
               class="w-full"
             >
@@ -378,6 +390,8 @@ import CardTitle from '~/components/ui/CardTitle.vue'
 import CardContent from '~/components/ui/CardContent.vue'
 import ImageSelector from '~/components/ImageSelector.vue'
 import BrandLogoManager from '~/components/BrandLogoManager.vue'
+import HiddenWatermarkConfig from '~/components/HiddenWatermarkConfig.vue'
+import { HIDDEN_WATERMARK_MAX_BYTES } from '~/lib/watermark/hiddenWatermarkCore'
 
 // Props
 interface Props {
@@ -436,6 +450,20 @@ function updateCurrentSignature(signature: SignatureOptions | undefined) {
 const currentExif = ref<Record<string, any>>({})
 
 const currentExifOverrides = ref<Record<string, any>>({})
+
+function hasActiveHiddenWatermark(config: Record<string, any>) {
+  const marker = String(config.hiddenWatermarkText || '').trim()
+  const markerBytes = new TextEncoder().encode(marker).length
+  return config.hiddenWatermarkEnabled === true &&
+    markerBytes > 0 &&
+    markerBytes <= HIDDEN_WATERMARK_MAX_BYTES
+}
+
+const hiddenWatermarkActive = computed(() => hasActiveHiddenWatermark(currentConfig.value))
+
+const canApplyCurrentConfig = computed(() =>
+  currentTemplateId.value !== 'noProcess' || hasActiveSignature.value || hiddenWatermarkActive.value
+)
 
 const currentFile = computed(() => files.value[currentIndex.value])
 
@@ -757,8 +785,17 @@ const dynamicNoBrandCount = computed(() => {
 // 处理模板选择
 function handleTemplateSelect(id: string) {
   const signature = currentConfig.value.signature
+  const previousHiddenWatermark = {
+    hiddenWatermarkEnabled: currentConfig.value.hiddenWatermarkEnabled,
+    hiddenWatermarkText: currentConfig.value.hiddenWatermarkText
+  }
   currentTemplateId.value = id
-  currentConfig.value = signature ? { signature } : {}
+  currentConfig.value = {
+    ...Object.fromEntries(
+      Object.entries(previousHiddenWatermark).filter(([, value]) => value !== undefined)
+    ),
+    ...(signature ? { signature } : {})
+  }
 }
 
 async function handleAppendFiles(newFiles: File[]) {
@@ -947,7 +984,7 @@ async function applyToAll() {
   })
   emitImageStates(newImageStates)
 
-  if (currentTemplateId.value === 'noProcess' && !hasActiveSignature.value) {
+  if (currentTemplateId.value === 'noProcess' && !hasActiveSignature.value && !hiddenWatermarkActive.value) {
     emitProcessedCache(new Map())
     emitPreviewUrls(new Map())
     success('已应用到所有图片！')
@@ -1021,7 +1058,7 @@ async function handleApplyToSelected(selectedFiles: File[]) {
   })
   emitImageStates(newImageStates)
 
-  if (currentTemplateId.value === 'noProcess' && !hasActiveSignature.value) {
+  if (currentTemplateId.value === 'noProcess' && !hasActiveSignature.value && !hiddenWatermarkActive.value) {
     const newProcessedCache = new Map(localProcessedCache.value)
     const newPreviewUrls = new Map(localPreviewUrls.value)
     selectedFiles.forEach(file => {
@@ -1126,7 +1163,7 @@ async function downloadAll() {
 
     const totalToProcess = files.value.filter(file => {
       const state = localImageStates.value.get(file)
-      return state && (state.templateId !== 'noProcess' || hasSignature(state.config))
+      return state && (state.templateId !== 'noProcess' || hasSignature(state.config) || hasActiveHiddenWatermark(state.config))
     }).length
 
     downloadProgress.value = { current: 0, total: totalToProcess, percent: 0 }
@@ -1138,7 +1175,7 @@ async function downloadAll() {
       const state = getEffectiveImageState(file)
       if (!state) continue
 
-      if (state.templateId === 'noProcess' && !hasSignature(state.config)) {
+      if (state.templateId === 'noProcess' && !hasSignature(state.config) && !hasActiveHiddenWatermark(state.config)) {
         skippedCount++
         continue
       }

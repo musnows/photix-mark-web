@@ -4,6 +4,12 @@ import type { ProcessorStep } from '~/lib/processors/types'
  * 模板用户可配置选项
  */
 export interface TemplateUserOptions {
+  /** 隐藏水印 */
+  hiddenWatermark?: {
+    enabled?: boolean
+    text?: string
+  }
+
   /** EXIF 字段显示控制 */
   exifFields?: {
     showBrand?: boolean

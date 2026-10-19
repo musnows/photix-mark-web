@@ -738,7 +738,18 @@ function toggleKnobClass(active: boolean) {
 }
 
 watch(() => props.template.id, () => {
-  resetAll()
+  const previousHiddenWatermark = {
+    hiddenWatermarkEnabled: localConfig.value.hiddenWatermarkEnabled,
+    hiddenWatermarkText: localConfig.value.hiddenWatermarkText
+  }
+  const nextValue = {
+    ...defaults.value,
+    signature: localConfig.value.signature,
+    ...Object.fromEntries(
+      Object.entries(previousHiddenWatermark).filter(([, value]) => value !== undefined)
+    )
+  }
+  pushConfig(nextValue)
 })
 
 watch(() => props.modelValue, (value) => {

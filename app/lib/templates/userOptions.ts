@@ -3,6 +3,8 @@ import { DEFAULT_DATE_TIME_FORMAT, DEFAULT_CUSTOM_DATE_TIME_FORMAT } from '../ed
 
 export function getTemplateDefaultConfig(template: TemplateConfig): Record<string, any> {
   return {
+    hiddenWatermarkEnabled: template.userOptions.hiddenWatermark?.enabled ?? false,
+    hiddenWatermarkText: template.userOptions.hiddenWatermark?.text ?? 'Photix Mark',
     showBrand: template.userOptions.exifFields?.showBrand ?? true,
     showModel: template.userOptions.exifFields?.showModel ?? true,
     showLens: template.userOptions.exifFields?.showLens ?? true,

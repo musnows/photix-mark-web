@@ -111,7 +111,8 @@ export default defineNuxtConfig({
     hostname: 'https://mark.photix.cc',
     gzip: true,
     routes: [
-      '/'
+      '/',
+      '/detect'
     ]
   },
 

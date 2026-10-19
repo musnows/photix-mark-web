@@ -67,6 +67,18 @@
           <ImageUploader @upload="handleUpload" />
         </Card>
 
+        <div class="mt-3 flex justify-center">
+          <NuxtLink
+            to="/detect"
+            class="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:border-primary/50 hover:text-foreground sm:text-sm"
+          >
+            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
+            </svg>
+            已有成片？检测隐藏水印
+          </NuxtLink>
+        </div>
+
         <!-- Additional Info -->
         <div class="mt-6 md:mt-8 text-center">
           <p class="text-xs md:text-sm text-muted-foreground">

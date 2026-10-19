@@ -32,6 +32,7 @@
 - **EXIF Data**: Automatically reads and displays EXIF information from your photos, such as camera model, lens, and shutter speed.
 - **Live Preview**: Dual preview modes (Grid & Carousel) to check the result before processing.
 - **Highly Customizable**: A powerful template system allows you to customize watermark content, logo, colors, and layout.
+- **Hidden Watermark Detection**: Embed a custom identifier into image pixels and recover it after cropping away the caption bar or cropping into the main photo with the [detector](https://mark.photix.cc/detect).
 - **Smart Download**: Single images are downloaded directly, while multiple images are automatically zipped for your convenience.
 
 ### 🚀 Tech Stack
