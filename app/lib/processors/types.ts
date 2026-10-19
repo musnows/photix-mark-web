@@ -3,6 +3,7 @@
  * 在处理器管道中传递的数据结构
  */
 export interface ProcessorContext {
+  signature?: import('~/utils/signature').SignatureRuntime
   /** Unmodified source for background effects. */
   sourceCanvas?: HTMLCanvasElement
   /** 图像缓冲区（支持多图层） */

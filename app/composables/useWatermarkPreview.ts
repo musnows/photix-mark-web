@@ -1,5 +1,7 @@
 import { ref, computed } from 'vue'
 import type { TemplateConfig } from '~/lib/templates/types'
+import type { ResponsiveProcessors } from '~/lib/templates/types'
+import type { ProcessorStep } from '~/lib/processors/types'
 import { useImageProcessor } from './useImageProcessor'
 
 /**
@@ -19,7 +21,7 @@ export function useWatermarkPreview() {
    */
   async function generatePreview(
     file: File,
-    processors: any[],
+    processors: ProcessorStep[] | ResponsiveProcessors,
     userConfig: Record<string, any>,
     exifOverride?: Record<string, any>
   ): Promise<string> {

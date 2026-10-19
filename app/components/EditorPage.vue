@@ -38,7 +38,7 @@
       <!-- 应用到全部按钮 -->
       <Button
         @click="applyToAll"
-        :disabled="processing || currentTemplateId === 'noProcess'"
+        :disabled="processing || (currentTemplateId === 'noProcess' && !hasActiveSignature)"
         variant="secondary"
         size="sm"
         class="text-xs px-3 py-1.5 rounded-full"
@@ -76,6 +76,7 @@
                 :current-exif="currentExif"
                 @update:current-index="currentIndex = $event"
                 @update:exif-overrides="updateCurrentExifOverrides"
+                @update:signature="updateCurrentSignature"
                 @append-files="handleAppendFiles"
                 @remove-file="handleRemoveFile"
               />
@@ -97,6 +98,15 @@
                 :selected-id="currentTemplateId"
                 @select="handleTemplateSelect"
               />
+            </CardContent>
+          </Card>
+
+          <Card class="bg-card/80 backdrop-blur-xl shadow-lg shadow-primary/5">
+            <CardHeader class="border-b bg-muted py-3">
+              <CardTitle class="text-base">签名水印</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SignatureConfig :model-value="currentConfig.signature" :default-anchor="getDefaultSignatureAnchor(currentTemplate.processors)" @update:model-value="updateCurrentSignature" />
             </CardContent>
           </Card>
 
@@ -136,7 +146,7 @@
             <div class="space-y-2">
               <Button
                 @click="applyToAll"
-                :disabled="processing || currentTemplateId === 'noProcess'"
+                :disabled="processing || (currentTemplateId === 'noProcess' && !hasActiveSignature)"
                 class="w-full"
                 size="lg"
               >
@@ -148,7 +158,7 @@
 
               <Button
                 @click="applyToSelected"
-                :disabled="processing || currentTemplateId === 'noProcess'"
+                :disabled="processing || (currentTemplateId === 'noProcess' && !hasActiveSignature)"
                 variant="outline"
                 class="w-full"
               >
@@ -208,6 +218,7 @@
               :current-exif="currentExif"
               @update:current-index="currentIndex = $event"
               @update:exif-overrides="updateCurrentExifOverrides"
+              @update:signature="updateCurrentSignature"
               @append-files="handleAppendFiles"
               @remove-file="handleRemoveFile"
             />
@@ -236,6 +247,12 @@
             />
           </div>
 
+          <div v-show="currentMobileTab === 'signature'" class="p-3">
+            <div class="rounded-xl border border-border bg-card p-3">
+              <SignatureConfig :model-value="currentConfig.signature" :default-anchor="getDefaultSignatureAnchor(currentTemplate.processors)" @update:model-value="updateCurrentSignature" />
+            </div>
+          </div>
+
           <!-- 品牌管理 Tab -->
           <div v-show="currentMobileTab === 'brand'" class="px-3 pt-2 pb-3">
             <BrandLogoManager
@@ -251,7 +268,7 @@
           <div v-show="currentMobileTab === 'apply'" class="p-3 space-y-2">
             <Button
               @click="applyToAll"
-              :disabled="processing || currentTemplateId === 'noProcess'"
+              :disabled="processing || (currentTemplateId === 'noProcess' && !hasActiveSignature)"
               class="w-full"
               size="lg"
             >
@@ -263,7 +280,7 @@
 
             <Button
               @click="applyToSelected"
-              :disabled="processing || currentTemplateId === 'noProcess'"
+              :disabled="processing || (currentTemplateId === 'noProcess' && !hasActiveSignature)"
               variant="outline"
               class="w-full"
             >
@@ -352,6 +369,7 @@ import { canvasToBlob } from '~/utils/canvas'
 import { buildCustomLogoConfig } from '~/utils/customLogos'
 import { mergeExifWithOverrides } from '~/lib/editor/exif'
 import type { ImageState } from '~/lib/editor/types'
+import { getDefaultSignatureAnchor, hasSignature, type SignatureOptions } from '~/lib/editor/signature'
 import type { TemplateConfig } from '~/lib/templates/types'
 import Button from '~/components/ui/Button.vue'
 import Card from '~/components/ui/Card.vue'
@@ -408,6 +426,11 @@ const currentTemplateId = ref('noProcess')
 
 // 当前图片的配置（用于UI绑定）
 const currentConfig = ref<Record<string, any>>({})
+const hasActiveSignature = computed(() => hasSignature(currentConfig.value))
+
+function updateCurrentSignature(signature: SignatureOptions | undefined) {
+  currentConfig.value = { ...currentConfig.value, signature }
+}
 
 // 当前图片的 EXIF（用于显示）
 const currentExif = ref<Record<string, any>>({})
@@ -476,6 +499,17 @@ const mobileTabs = [
       template: `
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1v-3z" />
+        </svg>
+      `
+    })
+  },
+  {
+    id: 'signature',
+    label: '签名',
+    icon: defineComponent({
+      template: `
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 20h16M14 4a2.1 2.1 0 013 3L8 16l-4 1 1-4 9-9z" />
         </svg>
       `
     })
@@ -722,8 +756,9 @@ const dynamicNoBrandCount = computed(() => {
 
 // 处理模板选择
 function handleTemplateSelect(id: string) {
+  const signature = currentConfig.value.signature
   currentTemplateId.value = id
-  currentConfig.value = {}
+  currentConfig.value = signature ? { signature } : {}
 }
 
 async function handleAppendFiles(newFiles: File[]) {
@@ -912,7 +947,7 @@ async function applyToAll() {
   })
   emitImageStates(newImageStates)
 
-  if (currentTemplateId.value === 'noProcess') {
+  if (currentTemplateId.value === 'noProcess' && !hasActiveSignature.value) {
     emitProcessedCache(new Map())
     emitPreviewUrls(new Map())
     success('已应用到所有图片！')
@@ -986,7 +1021,7 @@ async function handleApplyToSelected(selectedFiles: File[]) {
   })
   emitImageStates(newImageStates)
 
-  if (currentTemplateId.value === 'noProcess') {
+  if (currentTemplateId.value === 'noProcess' && !hasActiveSignature.value) {
     const newProcessedCache = new Map(localProcessedCache.value)
     const newPreviewUrls = new Map(localPreviewUrls.value)
     selectedFiles.forEach(file => {
@@ -1091,7 +1126,7 @@ async function downloadAll() {
 
     const totalToProcess = files.value.filter(file => {
       const state = localImageStates.value.get(file)
-      return state && state.templateId !== 'noProcess'
+      return state && (state.templateId !== 'noProcess' || hasSignature(state.config))
     }).length
 
     downloadProgress.value = { current: 0, total: totalToProcess, percent: 0 }
@@ -1103,7 +1138,7 @@ async function downloadAll() {
       const state = getEffectiveImageState(file)
       if (!state) continue
 
-      if (state.templateId === 'noProcess') {
+      if (state.templateId === 'noProcess' && !hasSignature(state.config)) {
         skippedCount++
         continue
       }

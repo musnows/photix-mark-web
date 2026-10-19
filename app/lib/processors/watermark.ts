@@ -2,6 +2,8 @@ import { ImageProcessor, type ProcessorContext } from './types'
 import { createCanvas, drawText, loadImage, parseColor } from '~/utils/canvas'
 import { getLogoPath } from '~/utils/logoMapper'
 import { formatDateTimeValue, formatExifValue, formatShutterValue } from '~/lib/editor/exif'
+import { templateSignature, drawSignature } from '~/utils/signature'
+import { fitSignature } from '~/lib/editor/signature'
 
 /**
  * 水印处理器
@@ -15,6 +17,7 @@ export class WatermarkProcessor extends ImageProcessor {
     const canvas = ctx.buffer[0]
     const config = ctx.config
     const exif = ctx.exif
+    const signature = templateSignature(ctx.signature)
 
     if (!canvas) {
       console.warn('[WatermarkProcessor] No canvas in buffer')
@@ -106,6 +109,7 @@ export class WatermarkProcessor extends ImageProcessor {
 
     // 左侧起始位置
     const leftX = commonSpacing
+    let leftTextWidth = 0
 
     // 左上（相机型号）- 根据用户配置动态构建
     if (config.left_top) {
@@ -129,6 +133,10 @@ export class WatermarkProcessor extends ImageProcessor {
         const yPos = leftCount === 1 ? textCenterY : textTopY
         const fontSize = leftCount === 1 ? largeFontSize * singleElementMultiplier : largeFontSize
         const baseline = leftCount === 1 ? 'middle' : 'bottom'
+        if (signature) {
+          wCtx.font = `${config.left_top.is_bold ? '700' : '300'} ${fontSize}px "Alibaba PuHuiTi", Arial, sans-serif`
+          leftTextWidth = Math.max(leftTextWidth, Math.min(wCtx.measureText(text).width, canvas.width * 0.33))
+        }
 
         drawText(wCtx, {
           text,
@@ -138,6 +146,7 @@ export class WatermarkProcessor extends ImageProcessor {
           baseline,
           color: parseColor(config.left_top.color || '#000000'),
           fontSize,
+          maxWidth: signature ? canvas.width * 0.33 : undefined,
           fontWeight: config.left_top.is_bold ? '700' : '300',
           fontFamily: '"Alibaba PuHuiTi", Arial, sans-serif'
         })
@@ -152,6 +161,10 @@ export class WatermarkProcessor extends ImageProcessor {
         const yPos = leftCount === 1 ? textCenterY : textBottomY
         const fontSize = leftCount === 1 ? baseFontSize * singleElementMultiplier : baseFontSize
         const baseline = leftCount === 1 ? 'middle' : 'top'
+        if (signature) {
+          wCtx.font = `300 ${fontSize}px "Alibaba PuHuiTi", Arial, sans-serif`
+          leftTextWidth = Math.max(leftTextWidth, Math.min(wCtx.measureText(text).width, canvas.width * 0.33))
+        }
 
         drawText(wCtx, {
           text,
@@ -161,6 +174,7 @@ export class WatermarkProcessor extends ImageProcessor {
           baseline,
           color: parseColor(config.left_bottom.color || textColor),
           fontSize,
+          maxWidth: signature ? canvas.width * 0.33 : undefined,
           fontFamily: '"Alibaba PuHuiTi", Arial, sans-serif'
         })
       }
@@ -288,8 +302,8 @@ export class WatermarkProcessor extends ImageProcessor {
 
       // 取两者中较小的 X 位置（更靠左），实现左对齐效果
       const minX = Math.min(
-        rightX - topWidth,
-        rightX - bottomWidth
+        rightX - (signature ? Math.min(topWidth, canvas.width * 0.3) : topWidth),
+        rightX - (signature ? Math.min(bottomWidth, canvas.width * 0.3) : bottomWidth)
       )
 
       rightTopX = minX
@@ -311,6 +325,7 @@ export class WatermarkProcessor extends ImageProcessor {
         baseline,
         color: parseColor(config.right_top.color || textColor),
         fontSize,
+        maxWidth: signature ? canvas.width * 0.3 : undefined,
         fontWeight: config.right_top.is_bold ? '700' : '300',
         fontFamily: '"Alibaba PuHuiTi", Arial, sans-serif'
       })
@@ -331,8 +346,20 @@ export class WatermarkProcessor extends ImageProcessor {
         baseline,
         color: parseColor(config.right_bottom?.color || textColor),
         fontSize,
+        maxWidth: signature ? canvas.width * 0.3 : undefined,
         fontFamily: '"Alibaba PuHuiTi", Arial, sans-serif'
       })
+    }
+
+    if (signature) {
+      const size = fitSignature(canvas.width * 0.18, watermarkHeight * 0.7, signature.options.aspectRatio, canvas.width * signature.options.width)
+      const rightStart = rightAlignment === 'left' && (rightTopText || rightBottomText)
+        ? rightTopX
+        : rightX - ((rightTopText || rightBottomText) ? canvas.width * 0.3 : 0)
+      const x = signature.options.anchor === 'camera' && leftCount > 0
+        ? leftX + leftTextWidth + commonSpacing
+        : logoPosition === 'center' ? canvas.width * 0.96 - size.width : rightStart - commonSpacing - size.width
+      drawSignature(wCtx, signature, x, textCenterY - size.height / 2, size.width, size.height)
     }
 
     ctx.buffer[0] = watermarkCanvas

@@ -80,6 +80,7 @@ export interface DrawTextOptions {
   fontSize?: number
   fontWeight?: string | number
   fontFamily?: string
+  maxWidth?: number
 }
 
 export function drawText(ctx: CanvasRenderingContext2D, options: DrawTextOptions) {
@@ -100,7 +101,7 @@ export function drawText(ctx: CanvasRenderingContext2D, options: DrawTextOptions
   ctx.textAlign = align
   ctx.textBaseline = baseline
   ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`
-  ctx.fillText(text, x, y)
+  ctx.fillText(text, x, y, options.maxWidth)
   ctx.restore()
 }
 

@@ -14,7 +14,8 @@
     "desktop:pack": "npm run desktop:build && electron-builder --config electron-builder.config.cjs --dir",
     "desktop:dist": "npm run desktop:build && electron-builder --config electron-builder.config.cjs",
     "test:desktop": "node --test tests/desktop.test.cjs",
-    "test:metadata": "node --test tests/full-exif.test.ts tests/builtin-logos.test.ts"
+    "test:metadata": "node --test tests/full-exif.test.ts tests/builtin-logos.test.ts",
+    "test:signature": "node --test tests/signature.test.ts"
   },
   "dependencies": {
     "@nuxtjs/tailwindcss": "^6.14.0",

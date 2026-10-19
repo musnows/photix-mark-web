@@ -2,6 +2,7 @@ import { ImageProcessor, type ProcessorContext } from './types'
 import { createCanvas, drawText, loadImage, parseColor } from '~/utils/canvas'
 import { renderTemplate } from './templateRenderer'
 import { alignInkLayer, getInkCenterY, trimHorizontalInk } from '~/utils/inkAlignment'
+import { appendSignature, templateSignature } from '~/utils/signature'
 
 /**
  * 多段富文本处理器
@@ -149,7 +150,9 @@ export class MultiRichTextProcessor extends ImageProcessor {
     })
 
     // 添加到 buffer
-    ctx.buffer.push(config.trim_ink_x ? trimHorizontalInk(textCanvas) : textCanvas)
+    const cameraCanvas = config.trim_ink_x ? trimHorizontalInk(textCanvas) : textCanvas
+    const signature = templateSignature(ctx.signature, 'camera')
+    ctx.buffer.push(signature ? appendSignature(cameraCanvas, signature, referenceWidth) : cameraCanvas)
     return ctx
   }
 

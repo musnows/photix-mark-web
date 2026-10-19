@@ -643,7 +643,7 @@ function resetField(key: string) {
 }
 
 function resetAll() {
-  pushConfig({ ...defaults.value })
+  pushConfig({ ...defaults.value, signature: props.modelValue.signature })
 }
 
 function applyCustomDateTimeFormat(format: string) {

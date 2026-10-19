@@ -2,6 +2,8 @@ import type { ProcessorContext, ProcessorStep } from '~/lib/processors/types'
 import { getProcessor } from '~/lib/processors/registry'
 import { loadImageToCanvas } from '~/utils/canvas'
 import { useExif } from './useExif'
+import { prepareSignature, finishSignature } from '~/utils/signature'
+import { getDefaultSignatureAnchor } from '~/lib/editor/signature'
 
 /**
  * 图像处理 Composable
@@ -64,6 +66,10 @@ export function useImageProcessor() {
       config: userConfig || {}
     }
 
+    const lightText = actualProcessors.length === 0 || actualProcessors.some(step => step.auto_params || step.processor_name === 'personal_text_overlay')
+    const background = userConfig?.backgroundColor || actualProcessors.find(step => step.processor_name === 'watermark')?.color || '#FFFFFF'
+    context.signature = await prepareSignature(context.config, background, lightText, getDefaultSignatureAnchor(actualProcessors))
+
     // 保存初始用户配置，用于覆盖模板配置
     const initialUserConfig = { ...context.config }
 
@@ -104,8 +110,8 @@ export function useImageProcessor() {
     }
 
     // 5. 返回最终 Canvas（通常是 buffer 的最后一层）
-    const finalCanvas = context.buffer[context.buffer.length - 1] || context.buffer[0]
-    return finalCanvas
+    const finalCanvas = context.buffer[context.buffer.length - 1] || context.buffer[0] || sourceCanvas
+    return finishSignature(finalCanvas, context.signature, userConfig?._signaturePreview === true)
   }
 
   return {

@@ -19,6 +19,7 @@
       <!-- 预览图片 -->
       <img
         v-else-if="currentPreviewUrl"
+        ref="previewImage"
         :src="currentPreviewUrl"
         :alt="files[currentIndex]?.name"
         style="max-height: 100%; max-width: 100%; height: auto; width: auto; object-fit: contain;"
@@ -30,6 +31,15 @@
         </svg>
         <p class="text-muted-foreground">加载中...</p>
       </div>
+
+      <SignatureOverlay
+        v-if="customSignature && !isProcessing"
+        :model-value="customSignature"
+        :image-element="previewImage"
+        :background="userConfig?.backgroundColor"
+        :light-text="signatureLightText"
+        @update:model-value="emit('update:signature', $event)"
+      />
 
       <!-- EXIF 信息卡片 - 按钮悬浮在右上角 -->
       <div
@@ -316,11 +326,14 @@ import { useDebounceFn } from '@vueuse/core'
 import { useWatermarkPreview } from '~/composables/useWatermarkPreview'
 import { mergeExifWithOverrides, normalizeExifOverrides } from '~/lib/editor/exif'
 import type { ImageState } from '~/lib/editor/types'
+import { hasSignature, type SignatureOptions } from '~/lib/editor/signature'
+import type { ProcessorStep } from '~/lib/processors/types'
+import type { ResponsiveProcessors } from '~/lib/templates/types'
 
 const props = defineProps<{
   files: File[]
   currentIndex: number
-  processors?: any[]
+  processors?: ProcessorStep[] | ResponsiveProcessors
   userConfig?: Record<string, any>
   previewUrls?: Map<File, string>
   customLogos?: Map<string, string>  // 自定义Logo配置
@@ -332,6 +345,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:current-index': [index: number]
   'update:exif-overrides': [value: Record<string, any>]
+  'update:signature': [value: SignatureOptions]
   'append-files': [files: File[]]
   'remove-file': [index: number]
 }>()
@@ -339,6 +353,14 @@ const emit = defineEmits<{
 // 缩略图容器引用
 const thumbnailContainer = ref<HTMLElement | null>(null)
 const appendInput = ref<HTMLInputElement | null>(null)
+const previewImage = ref<HTMLImageElement | null>(null)
+const customSignature = computed<SignatureOptions | undefined>(() => hasSignature(props.userConfig) && props.userConfig?.signature.position === 'custom' ? props.userConfig.signature : undefined)
+const previewConfig = computed(() => ({
+  ...props.userConfig,
+  signature: customSignature.value ? undefined : props.userConfig?.signature ? { ...props.userConfig.signature, name: '' } : undefined
+}))
+const signatureLightText = computed(() => Array.isArray(props.processors) && (props.processors.length === 0 || props.processors.some(step => step.auto_params || step.processor_name === 'personal_text_overlay')))
+let previewVersion = 0
 
 // EXIF 信息展开状态
 const exifExpanded = ref(false)
@@ -467,11 +489,12 @@ function generateThumbnails() {
 
 // 生成当前图片的处理预览
 const updateCurrentPreview = useDebounceFn(async () => {
+  const version = ++previewVersion
   const currentFile = props.files[props.currentIndex]
   if (!currentFile) return
 
   // 如果没有处理器，使用原图
-  if (!props.processors || props.processors.length === 0) {
+  if (!props.processors || (Array.isArray(props.processors) && props.processors.length === 0 && !hasSignature(props.userConfig))) {
     isProcessing.value = false
     return
   }
@@ -484,7 +507,7 @@ const updateCurrentPreview = useDebounceFn(async () => {
   }
 
   // 然后检查父组件缓存（来自"应用全部"）
-  if (props.previewUrls && props.previewUrls.has(currentFile)) {
+  if (!customSignature.value && props.previewUrls && props.previewUrls.has(currentFile)) {
     isProcessing.value = false
     return
   }
@@ -498,7 +521,7 @@ const updateCurrentPreview = useDebounceFn(async () => {
 
     // 构建包含自定义Logo的配置
     const configWithLogos = {
-      ...props.userConfig || {},
+      ...previewConfig.value,
       customLogoUrl: brand && props.customLogos?.has(brand) ?
         props.customLogos.get(brand) : undefined,
       customDefaultLogoUrl: props.customLogos?.get('')
@@ -510,12 +533,14 @@ const updateCurrentPreview = useDebounceFn(async () => {
       configWithLogos,
       props.imageStates?.get(currentFile)?.exifOverrides
     )
-    processedUrls.value.set(currentFile, previewUrl)
+    if (version === previewVersion && currentFile === props.files[props.currentIndex]) {
+      processedUrls.value.set(currentFile, previewUrl)
+    }
   } catch (error) {
     console.error('Failed to generate preview:', error)
   } finally {
     // 处理完成
-    isProcessing.value = false
+    if (version === previewVersion) isProcessing.value = false
   }
 }, 300)
 
@@ -530,7 +555,7 @@ const currentPreviewUrl = computed(() => {
   }
 
   // 其次使用父组件传递的预览URL（来自"应用全部"）
-  if (props.previewUrls && props.previewUrls.has(currentFile)) {
+  if (!customSignature.value && props.previewUrls && props.previewUrls.has(currentFile)) {
     return props.previewUrls.get(currentFile)!
   }
 
@@ -612,6 +637,7 @@ watch(() => props.files, (newFiles, oldFiles) => {
 
 // 监听当前索引变化 - 切换图片时生成预览并滚动
 watch(() => props.currentIndex, () => {
+  previewVersion++
   if (exifExpanded.value) {
     closeExifModal()
   }
@@ -621,7 +647,8 @@ watch(() => props.currentIndex, () => {
 })
 
 // 监听配置变化 - 只清除当前图片的缓存
-watch([() => props.processors, () => props.userConfig, () => props.customLogos, () => props.currentExif], () => {
+watch([() => props.processors, () => JSON.stringify(previewConfig.value), () => props.customLogos, () => props.currentExif], () => {
+  previewVersion++
   const currentFile = props.files[props.currentIndex]
   if (!currentFile) return
 
@@ -659,12 +686,20 @@ onUnmounted(() => {
 })
 
 // 打开图片预览
-function openPreview() {
+async function openPreview() {
   if (!currentPreviewUrl.value) return
 
   // 创建预览元素
   const img = document.createElement('img')
   img.src = currentPreviewUrl.value
+  if (customSignature.value && currentFile.value && props.processors) {
+    const brand = currentExif.value?.Make?.trim()
+    img.src = await generatePreview(currentFile.value, props.processors, {
+      ...props.userConfig,
+      customLogoUrl: brand ? props.customLogos?.get(brand) : undefined,
+      customDefaultLogoUrl: props.customLogos?.get('')
+    }, props.imageStates?.get(currentFile.value)?.exifOverrides)
+  }
 
   // 动态导入 viewerjs
   import('viewerjs/dist/viewer.css')

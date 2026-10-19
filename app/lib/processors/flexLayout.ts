@@ -3,6 +3,8 @@ import { createCanvas, drawText, drawLogo, parseColor, drawRoundedRect } from '~
 import { renderTemplate } from './templateRenderer'
 import { resolveLogoPath } from '~/utils/customLogos'
 import { formatExifValue, splitExifDisplayValue } from '~/lib/editor/exif'
+import { templateSignature, drawSignature } from '~/utils/signature'
+import { fitSignature } from '~/lib/editor/signature'
 
 /**
  * 灵活布局处理器
@@ -180,6 +182,13 @@ export class FlexLayoutProcessor extends ImageProcessor {
     // 计算实际字体大小
     const brandFontSize = Math.round(fontSize * brandFontMultiplier)
     const paramsFontSize = Math.round(fontSize * paramsFontMultiplier)
+    const signature = templateSignature(ctx.signature)
+    const besideCamera = signature?.options.anchor === 'camera'
+    const signatureFontSize = besideCamera ? brandFontSize : paramsFontSize
+    const signatureSize = signature ? fitSignature(canvas.width * 0.3, Math.min(height * 0.35, signatureFontSize * 2), signature.options.aspectRatio, canvas.width * signature.options.width) : undefined
+    const signatureGap = signatureSize ? canvas.width * 0.015 : 0
+    let signatureX = canvas.width / 2 - (signatureSize?.width || 0) / 2
+    const signatureY = Math.round(signatureFontSize / 2 + (canvas.height - signatureFontSize) * (besideCamera ? brandVerticalAlign : paramsVerticalAlign))
 
     // 第一行：品牌型号
     if (config.show_camera !== false) {
@@ -198,12 +207,17 @@ export class FlexLayoutProcessor extends ImageProcessor {
         // verticalAlign = 0.5: 文字居中
         // verticalAlign = 1: 文字底部对齐
         const brandY = Math.round(brandFontSize / 2 + (canvas.height - brandFontSize) * brandVerticalAlign)
+        const cameraSignatureSize = besideCamera ? signatureSize : undefined
+        lCtx.font = `700 ${brandFontSize}px "Alibaba PuHuiTi", Arial, sans-serif`
+        const cameraWidth = Math.min(lCtx.measureText(camera).width, canvas.width * 0.9 - (cameraSignatureSize?.width || 0) - (besideCamera ? signatureGap : 0))
+        if (cameraSignatureSize) signatureX = (canvas.width + cameraWidth + signatureGap - cameraSignatureSize.width) / 2
 
         drawText(lCtx, {
           text: camera,
-          x: Math.round(canvas.width / 2),
+          x: Math.round(canvas.width / 2 - (cameraSignatureSize ? cameraSignatureSize.width + signatureGap : 0) / 2),
           y: brandY,
           fontSize: brandFontSize,
+          maxWidth: cameraSignatureSize ? cameraWidth : undefined,
           align: 'center',
           baseline: 'middle',
           fontWeight: '700',
@@ -219,12 +233,17 @@ export class FlexLayoutProcessor extends ImageProcessor {
       if (params) {
         // ✨ 考虑字体大小，确保文字不会被裁剪
         const paramsY = Math.round(paramsFontSize / 2 + (canvas.height - paramsFontSize) * paramsVerticalAlign)
+        const paramsSignatureSize = besideCamera ? undefined : signatureSize
+        lCtx.font = `300 ${paramsFontSize}px "Alibaba PuHuiTi", Arial, sans-serif`
+        const paramsWidth = Math.min(lCtx.measureText(params).width, canvas.width * 0.9 - (paramsSignatureSize?.width || 0) - (besideCamera ? 0 : signatureGap))
+        if (paramsSignatureSize) signatureX = (canvas.width + paramsWidth + signatureGap - paramsSignatureSize.width) / 2
 
         drawText(lCtx, {
           text: params,
-          x: Math.round(canvas.width / 2),
+          x: Math.round(canvas.width / 2 - (paramsSignatureSize ? paramsSignatureSize.width + signatureGap : 0) / 2),
           y: paramsY,
           fontSize: paramsFontSize,
+          maxWidth: paramsSignatureSize ? paramsWidth : undefined,
           align: 'center',
           baseline: 'middle',
           fontWeight: '300',
@@ -232,6 +251,10 @@ export class FlexLayoutProcessor extends ImageProcessor {
           fontFamily: '"Alibaba PuHuiTi", Arial, sans-serif'
         })
       }
+    }
+
+    if (signature && signatureSize) {
+      drawSignature(lCtx, signature, signatureX, signatureY - signatureSize.height / 2, signatureSize.width, signatureSize.height)
     }
 
     return canvas
@@ -329,6 +352,13 @@ export class FlexLayoutProcessor extends ImageProcessor {
       })
 
       currentY += itemHeight
+    }
+
+    const signature = templateSignature(ctx.signature)
+    if (signature) {
+      const size = fitSignature(width * 0.8, itemHeight * 0.7, signature.options.aspectRatio, source.width * signature.options.width)
+      const row = signature.options.anchor === 'camera' ? 1.55 : 2
+      drawSignature(sCtx, signature, (width - size.width) / 2, height - itemHeight * row - size.height / 2, size.width, size.height)
     }
 
     // 相机型号（倒数第二）

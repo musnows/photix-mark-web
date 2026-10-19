@@ -2,6 +2,7 @@ import { ImageProcessor, type ProcessorContext } from './types'
 import { createCanvas, drawText, parseColor } from '~/utils/canvas'
 import { renderTemplate } from './templateRenderer'
 import { formatDateTimeValue, formatExifValue } from '~/lib/editor/exif'
+import { appendSignature, templateSignature } from '~/utils/signature'
 
 /**
  * 富文本处理器
@@ -14,6 +15,7 @@ export class RichTextProcessor extends ImageProcessor {
   process(ctx: ProcessorContext): ProcessorContext {
     const config = ctx.config
     const exif = ctx.exif
+    const signature = config.auto_camera ? templateSignature(ctx.signature, 'camera') : config.auto_params ? templateSignature(ctx.signature, 'params') : undefined
 
     // 检查是否有文本配置
     if (!config.text && !config.auto_params && !config.auto_camera) {
@@ -70,7 +72,9 @@ export class RichTextProcessor extends ImageProcessor {
     if (!text || text.trim() === '') {
       console.warn('[RichTextProcessor] Text is empty after rendering, creating placeholder')
       // 创建一个极小的透明占位层，避免 buffer 索引错位
-      const placeholderCanvas = createCanvas(1, 1)
+      const placeholderCanvas = signature
+        ? appendSignature(createCanvas(1, this.calculateHeight(config.height, ctx.buffer[0]?.height || 1000)), signature, ctx.buffer[0]?.width || 1000)
+        : createCanvas(1, 1)
       ctx.buffer.push(placeholderCanvas)
       return ctx
     }
@@ -107,7 +111,7 @@ export class RichTextProcessor extends ImageProcessor {
     })
 
     // 添加到 buffer
-    ctx.buffer.push(textCanvas)
+    ctx.buffer.push(signature ? appendSignature(textCanvas, signature, ctx.buffer[0]?.width || 1000) : textCanvas)
     return ctx
   }
 
