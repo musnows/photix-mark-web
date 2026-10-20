@@ -137,7 +137,7 @@
           </div>
           <input
             type="range"
-            min="0.03"
+            min="0.04"
             max="0.22"
             step="0.001"
             :value="localConfig.imageMargin"

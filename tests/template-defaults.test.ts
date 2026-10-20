@@ -7,7 +7,7 @@ import { resolveTextScale } from '../app/lib/processors/textScale.ts'
 
 test('blur templates use the updated image margin bounds and defaults', () => {
   for (const template of [blurBackground, nikonBlur]) {
-    assert.equal(template.userOptions.layout?.imageMargin, 0.05)
+    assert.equal(template.userOptions.layout?.imageMargin, 0.12)
     assert.equal(template.userOptions.typography?.portraitScale, 0.9)
 
     const marginSteps = template.processors
@@ -16,8 +16,8 @@ test('blur templates use the updated image margin bounds and defaults', () => {
 
     assert.equal(marginSteps.length, 3)
     for (const margin of marginSteps) {
-      assert.equal(margin.min_margin, 0.03)
-      assert.equal(margin.default_margin, 0.05)
+      assert.equal(margin.min_margin, 0.04)
+      assert.equal(margin.default_margin, 0.12)
     }
   }
 })
