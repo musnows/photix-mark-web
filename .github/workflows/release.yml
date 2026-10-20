@@ -44,22 +44,22 @@ jobs:
         run: npm ci
 
       - name: Run release checks
-        run: npm run test:metadata && npm run test:desktop
+        run: npm run test:metadata && npm run test:desktop && npm run test:signature && npm run test:hidden-watermark
 
       - name: Build desktop application
         run: npm run desktop:build
 
       - name: Package macOS applications
         if: matrix.platform == 'macos'
-        run: npx electron-builder --config electron-builder.config.cjs --mac --x64 --arm64
+        run: npx electron-builder --config electron-builder.config.cjs --mac --x64 --arm64 --publish never
 
       - name: Package Windows application
         if: matrix.platform == 'windows'
-        run: npx electron-builder --config electron-builder.config.cjs --win --x64
+        run: npx electron-builder --config electron-builder.config.cjs --win --x64 --publish never
 
       - name: Package Linux application
         if: matrix.platform == 'linux'
-        run: npx electron-builder --config electron-builder.config.cjs --linux --x64
+        run: npx electron-builder --config electron-builder.config.cjs --linux --x64 --publish never
 
       - name: Upload desktop packages
         uses: actions/upload-artifact@v6
