@@ -1,14 +1,18 @@
+import { detectRobustWatermark, embedRobustWatermark } from './hiddenWatermarkRobust.ts'
+import { ROBUST_MAX_BYTES } from './hiddenWatermarkCodec.ts'
+
 /**
- * Invisible watermark based on repeated 8x8 DCT blocks.
+ * Invisible watermark with a normalized, error-corrected carrier and a
+ * legacy repeated 8x8 DCT carrier for existing images and unscaled crops.
  *
- * A 1024-bit frame is tiled across the whole image. Every frame bit is
+ * A 784-bit legacy frame is tiled across the whole image. Every frame bit is
  * stored in one 8x8 luminance block, so the identifier remains recoverable
  * after the visible border is cropped. Detection tries the possible block
  * grid offsets and frame phases instead of relying on image dimensions or
  * metadata.
  */
 
-export const HIDDEN_WATERMARK_MAX_BYTES = 64
+export const HIDDEN_WATERMARK_MAX_BYTES = ROBUST_MAX_BYTES
 
 const BLOCK_SIZE = 8
 const TILE_BLOCKS_X = 28
@@ -45,6 +49,7 @@ interface PhaseCandidate {
 export interface HiddenWatermarkDetection {
   marker: string
   confidence: number
+  version: 1 | 2
   blockCount: number
   gridOffsetX: number
   gridOffsetY: number
@@ -380,6 +385,7 @@ export function embedHiddenWatermarkInRgba(
   marker: string
 ) {
   const frame = buildFrame(marker)
+  embedRobustWatermark(data, width, height, marker)
   const blockColumns = Math.floor(width / BLOCK_SIZE)
   const blockRows = Math.floor(height / BLOCK_SIZE)
 
@@ -464,6 +470,18 @@ export function detectHiddenWatermarkInRgba(
 ): HiddenWatermarkDetection | null {
   if (width < BLOCK_SIZE * 4 || height < BLOCK_SIZE * 4) return null
 
+  const robust = detectRobustWatermark(data, width, height)
+  if (robust) {
+    return {
+      ...robust,
+      version: 2,
+      gridOffsetX: 0,
+      gridOffsetY: 0,
+      framePhaseX: 0,
+      framePhaseY: 0
+    }
+  }
+
   const candidates: PhaseCandidate[] = []
 
   for (let offsetY = 0; offsetY < BLOCK_SIZE; offsetY++) {
@@ -518,6 +536,7 @@ export function detectHiddenWatermarkInRgba(
     const result: HiddenWatermarkDetection = {
       marker: parsed.marker,
       confidence: parsed.confidence,
+      version: 1,
       blockCount: observations.length,
       gridOffsetX: candidate.offsetX,
       gridOffsetY: candidate.offsetY,

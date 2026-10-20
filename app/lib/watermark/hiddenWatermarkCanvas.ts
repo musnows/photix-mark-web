@@ -28,8 +28,21 @@ export function detectHiddenWatermarkInCanvas(canvas: HTMLCanvasElement): Hidden
 
 export async function detectHiddenWatermarkInFile(file: File) {
   const canvas = await loadImageToCanvas(file)
+  const context = getReadableContext(canvas)
+  const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
+  const worker = new Worker(new URL('./hiddenWatermark.worker.ts', import.meta.url), { type: 'module' })
+  let result: HiddenWatermarkDetection | null
+  try {
+    result = await new Promise<HiddenWatermarkDetection | null>((resolve, reject) => {
+      worker.onmessage = (event: MessageEvent<HiddenWatermarkDetection | null>) => resolve(event.data)
+      worker.onerror = (event) => reject(new Error(event.message || 'Hidden watermark worker failed'))
+      worker.postMessage({ data: imageData.data, width: canvas.width, height: canvas.height }, [imageData.data.buffer])
+    })
+  } finally {
+    worker.terminate()
+  }
   return {
-    result: detectHiddenWatermarkInCanvas(canvas),
+    result,
     width: canvas.width,
     height: canvas.height
   }

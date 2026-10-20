@@ -27,7 +27,7 @@
           </svg>
         </span>
         <span class="mt-4 text-base font-semibold text-foreground">选择或拖入需要检测的图片</span>
-        <span class="mt-1 text-xs text-muted-foreground sm:text-sm">支持裁掉边框后的主图、局部裁切图和 JPEG 成片</span>
+        <span class="mt-1 text-xs text-muted-foreground sm:text-sm">支持新版水印的缩小、JPEG 重压缩检测，兼容旧版水印</span>
       </button>
     </div>
 
@@ -58,6 +58,10 @@
           <p class="mt-3 text-sm font-semibold text-destructive">检测失败</p>
           <p class="mt-2 text-xs leading-relaxed text-muted-foreground">{{ errorMessage }}</p>
         </template>
+        <template v-else-if="result">
+          <p class="mt-3 text-sm font-semibold text-foreground">已恢复隐藏标识</p>
+          <p class="mt-2 text-xs leading-relaxed text-muted-foreground">{{ result.version === 2 ? '抗缩放水印 V2 · 校验通过' : '旧版水印 V1 · 校验通过' }}</p>
+        </template>
         <button
           v-if="!processing"
           type="button"
@@ -78,7 +82,7 @@
         </span>
         <div>
           <p class="text-sm font-semibold text-foreground">检测成功</p>
-          <p class="text-[11px] text-muted-foreground">已从重复信号和校验码中恢复标识</p>
+          <p class="text-[11px] text-muted-foreground">{{ result.version === 2 ? '已通过纠错解码和校验码验证' : '已从重复信号和校验码中恢复标识' }}</p>
         </div>
       </div>
       <div class="space-y-3 px-4 py-4 sm:px-5 sm:py-5">
@@ -103,7 +107,8 @@
 
     <div class="rounded-2xl border border-border bg-muted/35 px-4 py-4 text-xs leading-relaxed text-muted-foreground sm:px-5">
       <p class="font-medium text-foreground">检测说明</p>
-      <p class="mt-1.5">检测完全在浏览器本地完成。工具会搜索 8x8 像素块中的重复频域信号，因此裁掉相机参数栏、裁取主图局部后仍有机会恢复。严重降采样、低质量重压缩或大范围涂抹会降低成功率。</p>
+      <p class="mt-1.5">检测完全在浏览器本地完成，无需原图或预先输入标识。新版先按图片比例定位低频信号，再通过纠错与校验恢复文字；同时兼容旧版像素块水印和未缩放的局部裁剪。</p>
+      <p class="mt-1.5">针对宽高各缩小至 1/4 的图片，建议缩小后短边至少保留 256 px。旧成片需要重新导出才能获得新版抗缩放能力；裁剪与缩放叠加、极低质量压缩或大范围涂抹仍可能导致检测失败。</p>
     </div>
   </div>
 </template>
@@ -122,6 +127,7 @@ const result = ref<HiddenWatermarkDetection | null | undefined>(undefined)
 const errorMessage = ref('')
 const imageWidth = ref(0)
 const imageHeight = ref(0)
+let detectionId = 0
 
 const fileName = computed(() => selectedFile.value?.name || '')
 const dimensionsText = computed(() => {
@@ -178,25 +184,33 @@ async function selectFile(file: File) {
 }
 
 async function runDetection() {
-  if (!selectedFile.value || processing.value) return
+  if (!selectedFile.value) return
+
+  const file = selectedFile.value
+  const requestId = ++detectionId
 
   processing.value = true
   errorMessage.value = ''
   result.value = undefined
 
   try {
-    const detection = await detectHiddenWatermarkInFile(selectedFile.value)
+    const detection = await detectHiddenWatermarkInFile(file)
+    if (requestId !== detectionId) return
     imageWidth.value = detection.width
     imageHeight.value = detection.height
     result.value = detection.result
   } catch (error) {
+    if (requestId !== detectionId) return
     console.error('[HiddenWatermarkDetector] Detection failed:', error)
     errorMessage.value = '无法读取图片像素，请更换图片后重试。'
     result.value = undefined
   } finally {
-    processing.value = false
+    if (requestId === detectionId) processing.value = false
   }
 }
 
-onUnmounted(clearPreviewUrl)
+onUnmounted(() => {
+  detectionId++
+  clearPreviewUrl()
+})
 </script>

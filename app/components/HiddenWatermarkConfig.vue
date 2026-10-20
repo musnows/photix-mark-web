@@ -7,7 +7,7 @@
           <span class="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">可选</span>
         </div>
         <p class="mt-1 text-[11px] leading-relaxed text-muted-foreground sm:text-xs">
-          把标识重复写入画面像素。裁掉参数栏或再次裁剪主图后，仍可使用检测工具读取。
+          将标识写入隐藏的低频信号，增强缩小尺寸和 JPEG 重压缩后的恢复能力，同时保留局部裁剪检测。
         </p>
       </div>
       <button
@@ -46,6 +46,9 @@
         </p>
         <p v-else class="text-[10px] leading-relaxed text-muted-foreground">
           标识作为纯文本写入，不会显示在画面上。支持中英文、数字与符号，最多 {{ maxBytes }} 个 UTF-8 字节。
+        </p>
+        <p class="text-[10px] leading-relaxed text-muted-foreground">
+          建议导出图片短边至少 1024 px，宽高各缩小至 1/4 后仍保留至少 256 px。旧成片需要重新导出才能获得新版抗缩放能力；裁剪后再缩小或极低质量压缩仍可能无法恢复。
         </p>
       </div>
     </Transition>

@@ -16,7 +16,7 @@
     "test:desktop": "node --test tests/desktop.test.cjs",
     "test:metadata": "node --test tests/full-exif.test.ts tests/builtin-logos.test.ts",
     "test:signature": "node --test tests/signature.test.ts",
-    "test:hidden-watermark": "node --test tests/hidden-watermark.test.ts",
+    "test:hidden-watermark": "node --test tests/hidden-watermark.test.ts tests/hidden-watermark-robust.test.ts",
     "test:templates": "node --test tests/template-defaults.test.ts"
   },
   "dependencies": {
@@ -39,6 +39,7 @@
     "electron": "^44.7.0",
     "electron-builder": "^26.15.3",
     "radix-vue": "^1.9.17",
+    "sharp": "^0.35.5",
     "tailwind-merge": "^3.4.0",
     "tailwindcss-animate": "^1.0.7"
   }
