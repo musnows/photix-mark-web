@@ -12,6 +12,7 @@
           <h1 class="text-3xl md:text-6xl font-bold text-foreground mb-2 md:mb-4">Photix Mark</h1>
           <div class="flex items-center justify-center gap-2 mb-3 md:mb-4">
             <ThemeToggle />
+            <HiddenWatermarkButton />
             <a
               href="https://github.com/musnows/photix-mark-web"
               target="_blank"

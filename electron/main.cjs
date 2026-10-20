@@ -10,14 +10,16 @@ protocol.registerSchemesAsPrivileged([
 
 let mainWindow
 let exportStore
+const appWindows = new Set()
 
 function handle(channel, callback) {
   ipcMain.handle(channel, async (event, ...args) => {
-    if (!mainWindow || event.sender !== mainWindow.webContents
-      || event.senderFrame !== mainWindow.webContents.mainFrame || !isAppUrl(event.senderFrame.url)) {
+    const window = BrowserWindow.fromWebContents(event.sender)
+    if (!window || !appWindows.has(window)
+      || event.senderFrame !== window.webContents.mainFrame || !isAppUrl(event.senderFrame.url)) {
       throw new Error('Untrusted IPC sender')
     }
-    return callback(...args)
+    return callback(window, ...args)
   })
 }
 
@@ -30,6 +32,46 @@ function openExternal(value) {
   } catch (error) {
     console.error('Invalid external link:', error)
   }
+}
+
+function secureWindow(window) {
+  appWindows.add(window)
+  window.once('closed', () => appWindows.delete(window))
+  window.webContents.setWindowOpenHandler(({ url }) => {
+    if (isAppUrl(url)) {
+      return {
+        action: 'allow',
+        overrideBrowserWindowOptions: {
+          title: 'Photix Mark',
+          width: 1100,
+          height: 900,
+          minWidth: 420,
+          minHeight: 600,
+          show: true,
+          webPreferences: {
+            preload: path.join(__dirname, 'preload.cjs'),
+            contextIsolation: true,
+            nodeIntegration: false,
+            sandbox: true,
+            webSecurity: true
+          }
+        }
+      }
+    }
+    openExternal(url)
+    return { action: 'deny' }
+  })
+  window.webContents.on('did-create-window', child => secureWindow(child))
+  window.webContents.on('will-navigate', (event, url) => {
+    if (!isAppUrl(url)) {
+      event.preventDefault()
+      openExternal(url)
+    }
+  })
+  window.webContents.on('will-attach-webview', event => event.preventDefault())
+  window.webContents.on('did-fail-load', (_event, code, description) => {
+    console.error(`Renderer load failed (${code}): ${description}`)
+  })
 }
 
 function createWindow() {
@@ -51,20 +93,7 @@ function createWindow() {
     }
   })
   mainWindow.once('ready-to-show', () => mainWindow.show())
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    openExternal(url)
-    return { action: 'deny' }
-  })
-  mainWindow.webContents.on('will-navigate', (event, url) => {
-    if (!isAppUrl(url)) {
-      event.preventDefault()
-      openExternal(url)
-    }
-  })
-  mainWindow.webContents.on('will-attach-webview', event => event.preventDefault())
-  mainWindow.webContents.on('did-fail-load', (_event, code, description) => {
-    console.error(`Renderer load failed (${code}): ${description}`)
-  })
+  secureWindow(mainWindow)
   mainWindow.on('closed', () => { mainWindow = undefined })
   mainWindow.loadURL(APP_URL)
 }
@@ -99,8 +128,8 @@ if (!app.requestSingleInstanceLock()) {
       } })
     })
     handle('export:get-directory', () => exportStore.getDirectory())
-    handle('export:choose-directory', async () => {
-      const result = await dialog.showOpenDialog(mainWindow, {
+    handle('export:choose-directory', async (window) => {
+      const result = await dialog.showOpenDialog(window, {
         title: '选择导出目录',
         defaultPath: exportStore.getDirectory(),
         properties: ['openDirectory', 'createDirectory']
@@ -113,7 +142,7 @@ if (!app.requestSingleInstanceLock()) {
       const error = await shell.openPath(exportStore.getDirectory())
       if (error) throw new Error(error)
     })
-    handle('export:save-file', file => exportStore.saveFile(file))
+    handle('export:save-file', (_window, file) => exportStore.saveFile(file))
     Menu.setApplicationMenu(Menu.buildFromTemplate([
       ...(process.platform === 'darwin' ? [{ role: 'appMenu' }] : []),
       { role: 'fileMenu' },
