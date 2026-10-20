@@ -87,8 +87,8 @@ export const nikonBlur: TemplateConfig = {
       scale: 0.88,
       scale_from_margin: {
         key: 'imageMargin',
-        default_margin: 0.05,
-        min_margin: 0.03,
+        default_margin: 0.12,
+        min_margin: 0.04,
         max_margin: 0.22
       },
       target_index: 0
@@ -101,8 +101,8 @@ export const nikonBlur: TemplateConfig = {
       weights: [0, -5],
       weights_from_margin: {
         key: 'imageMargin',
-        default_margin: 0.05,
-        min_margin: 0.03,
+        default_margin: 0.12,
+        min_margin: 0.04,
         max_margin: 0.22,
         default_weights: [0, -5]
       },
@@ -117,8 +117,8 @@ export const nikonBlur: TemplateConfig = {
       weights: [0, -8],
       weights_from_margin: {
         key: 'imageMargin',
-        default_margin: 0.05,
-        min_margin: 0.03,
+        default_margin: 0.12,
+        min_margin: 0.04,
         max_margin: 0.22,
         default_weights: [0, -8]
       },
@@ -153,7 +153,7 @@ export const nikonBlur: TemplateConfig = {
       shadowRadius: 0.015
     },
     layout: {
-      imageMargin: 0.05
+      imageMargin: 0.12
     },
     blur: {
       blurRadius: 0.05,

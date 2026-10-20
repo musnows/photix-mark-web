@@ -71,8 +71,8 @@ export const blurBackground: TemplateConfig = {
       scale: 0.88,  // 增大原图比例
       scale_from_margin: {
         key: 'imageMargin',
-        default_margin: 0.05,
-        min_margin: 0.03,
+        default_margin: 0.12,
+        min_margin: 0.04,
         max_margin: 0.22
       },
       target_index: 0
@@ -85,8 +85,8 @@ export const blurBackground: TemplateConfig = {
       weights: [0, -5],  // 稍微往上偏移
       weights_from_margin: {
         key: 'imageMargin',
-        default_margin: 0.05,
-        min_margin: 0.03,
+        default_margin: 0.12,
+        min_margin: 0.04,
         max_margin: 0.22,
         default_weights: [0, -5]
       },
@@ -100,8 +100,8 @@ export const blurBackground: TemplateConfig = {
       weights: [0, -8],  // 距离底部一点点边距
       weights_from_margin: {
         key: 'imageMargin',
-        default_margin: 0.05,
-        min_margin: 0.03,
+        default_margin: 0.12,
+        min_margin: 0.04,
         max_margin: 0.22,
         default_weights: [0, -8]
       },
@@ -132,7 +132,7 @@ export const blurBackground: TemplateConfig = {
       shadowRadius: 0.015
     },
     layout: {
-      imageMargin: 0.05
+      imageMargin: 0.12
     },
     blur: {
       blurRadius: 0.05
