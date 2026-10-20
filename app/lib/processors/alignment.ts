@@ -163,8 +163,8 @@ export class AlignmentProcessor extends ImageProcessor {
         ? config.weights_from_margin
         : { key: config.weights_from_margin }
       const key = options.key || 'imageMargin'
-      const defaultMargin = options.default_margin ?? 0.12
-      const minMargin = options.min_margin ?? 0.04
+      const defaultMargin = options.default_margin ?? 0.05
+      const minMargin = options.min_margin ?? 0.03
       const maxMargin = options.max_margin ?? 0.22
       const rawMargin = Number(config[key] ?? defaultMargin)
       const margin = Math.min(Math.max(Number.isFinite(rawMargin) ? rawMargin : defaultMargin, minMargin), maxMargin)

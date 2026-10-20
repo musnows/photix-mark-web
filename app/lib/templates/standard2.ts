@@ -18,7 +18,7 @@ export const standard2: TemplateConfig = {
     {
       processor_name: 'shadow',
       shadow_color: 'rgba(0,0,0,0.15)',  // 更淡的阴影
-      shadow_radius: 0.006  // 白色边框
+      shadow_radius: 0.015  // 白色边框
     },
     {
       processor_name: 'watermark',
@@ -85,7 +85,7 @@ export const standard2: TemplateConfig = {
     shadow: {
       shadowEnabled: true,
       shadowColor: 'rgba(0,0,0,0.15)',
-      shadowRadius: 0.006
+      shadowRadius: 0.015
     }
   }
 }

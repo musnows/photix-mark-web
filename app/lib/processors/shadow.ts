@@ -15,7 +15,7 @@ export class ShadowProcessor extends ImageProcessor {
       return ctx
     }
 
-    const shadowRadiusConfig = ctx.config.shadowRadius ?? ctx.config.shadow_radius ?? 0.005
+    const shadowRadiusConfig = ctx.config.shadowRadius ?? ctx.config.shadow_radius ?? 0.015
     const shadowColor = parseColor(ctx.config.shadowColor || ctx.config.shadow_color || 'rgba(0,0,0,0.15)')
 
     if (!canvas) {

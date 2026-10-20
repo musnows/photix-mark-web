@@ -17,7 +17,7 @@ export const nikonBlur: TemplateConfig = {
     },
     {
       processor_name: 'shadow',
-      shadow_radius: 0.01,  // vh(1)
+      shadow_radius: 0.015,
       shadow_color: 'black'
     },
     {
@@ -87,8 +87,8 @@ export const nikonBlur: TemplateConfig = {
       scale: 0.88,
       scale_from_margin: {
         key: 'imageMargin',
-        default_margin: 0.12,
-        min_margin: 0.04,
+        default_margin: 0.05,
+        min_margin: 0.03,
         max_margin: 0.22
       },
       target_index: 0
@@ -101,8 +101,8 @@ export const nikonBlur: TemplateConfig = {
       weights: [0, -5],
       weights_from_margin: {
         key: 'imageMargin',
-        default_margin: 0.12,
-        min_margin: 0.04,
+        default_margin: 0.05,
+        min_margin: 0.03,
         max_margin: 0.22,
         default_weights: [0, -5]
       },
@@ -117,8 +117,8 @@ export const nikonBlur: TemplateConfig = {
       weights: [0, -8],
       weights_from_margin: {
         key: 'imageMargin',
-        default_margin: 0.12,
-        min_margin: 0.04,
+        default_margin: 0.05,
+        min_margin: 0.03,
         max_margin: 0.22,
         default_weights: [0, -8]
       },
@@ -150,15 +150,18 @@ export const nikonBlur: TemplateConfig = {
     shadow: {
       shadowEnabled: true,
       shadowColor: 'black',
-      shadowRadius: 0.01
+      shadowRadius: 0.015
     },
     layout: {
-      imageMargin: 0.12
+      imageMargin: 0.05
     },
     blur: {
       blurRadius: 0.05,
       vignetteEnabled: true,
       vignetteStrength: 0.3
+    },
+    typography: {
+      portraitScale: 0.9
     }
   }
 }
