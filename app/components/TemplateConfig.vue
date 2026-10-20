@@ -137,7 +137,7 @@
           </div>
           <input
             type="range"
-            min="0.04"
+            min="0.03"
             max="0.22"
             step="0.001"
             :value="localConfig.imageMargin"
@@ -194,6 +194,32 @@
             class="slider-input"
           />
         </div>
+      </div>
+    </section>
+
+    <section v-if="hasTypographyConfig" class="config-card">
+      <div class="section-head">
+        <h3 class="section-title">文字</h3>
+      </div>
+      <div class="space-y-2">
+        <div class="range-head">
+          <label class="field-label">纵向字号</label>
+          <div class="range-actions">
+            <span class="value-pill">{{ Math.round(localConfig.watermarkScale * 100) }}%</span>
+            <button @click="resetField('watermarkScale')" class="reset-chip">重置</button>
+          </div>
+        </div>
+        <input
+          type="range"
+          aria-label="纵向字号"
+          min="0.8"
+          max="1"
+          step="0.01"
+          :value="localConfig.watermarkScale"
+          @input="updateConfig('watermarkScale', Number(($event.target as HTMLInputElement).value))"
+          class="slider-input"
+        />
+        <p class="text-[11px] text-muted-foreground sm:text-xs">仅调整纵向图片底部水印，默认 90%</p>
       </div>
     </section>
 
@@ -558,6 +584,7 @@ const hasLogoConfig = computed(() => {
 const hasColorConfig = computed(() => props.template.userOptions.colors !== undefined)
 const hasBackgroundConfig = computed(() => props.template.userOptions.background !== undefined)
 const hasBorderConfig = computed(() => props.template.userOptions.border !== undefined)
+const hasTypographyConfig = computed(() => props.template.userOptions.typography !== undefined)
 const hasShadowConfig = computed(() => props.template.userOptions.shadow !== undefined)
 const hasBlurConfig = computed(() => props.template.userOptions.blur !== undefined)
 const hasLayoutConfig = computed(() => props.template.userOptions.layout !== undefined)

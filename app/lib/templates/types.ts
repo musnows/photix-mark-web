@@ -80,6 +80,11 @@ export interface TemplateUserOptions {
     opacity?: number
     position?: 'bottom-center' | 'top-center' | 'left-bottom' | 'right-bottom'
   }
+
+  /** 文字排版控制 */
+  typography?: {
+    portraitScale?: number
+  }
 }
 
 /**

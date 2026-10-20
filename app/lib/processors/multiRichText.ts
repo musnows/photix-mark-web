@@ -3,6 +3,7 @@ import { createCanvas, drawText, loadImage, parseColor } from '~/utils/canvas'
 import { renderTemplate } from './templateRenderer'
 import { alignInkLayer, getInkCenterY, trimHorizontalInk } from '~/utils/inkAlignment'
 import { appendSignature, templateSignature } from '~/utils/signature'
+import { resolveTextScale } from './textScale'
 
 /**
  * 多段富文本处理器
@@ -41,7 +42,8 @@ export class MultiRichTextProcessor extends ImageProcessor {
     const referenceWidth = ctx.buffer[0]?.width || 1000
 
     // 计算文本高度和间距
-    const height = this.calculateHeight(config.height, referenceHeight)
+    const textScale = resolveTextScale(config, referenceWidth, referenceHeight)
+    const height = this.calculateHeight(config.height, referenceHeight) * textScale
     const fontSize = height * 0.8
     const textSpacing = this.calculateSpacing(config.text_spacing, referenceWidth)  // 使用图片宽度作为参考
 

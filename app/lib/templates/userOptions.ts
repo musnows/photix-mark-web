@@ -23,13 +23,13 @@ export function getTemplateDefaultConfig(template: TemplateConfig): Record<strin
     nikonZScale: template.userOptions.nikonZ?.scale ?? 1,
     backgroundColor: template.userOptions.background?.backgroundColor ?? '#FFFFFF',
     padding: template.userOptions.layout?.padding ?? 0.03,
-    imageMargin: template.userOptions.layout?.imageMargin ?? 0.12,
+    imageMargin: template.userOptions.layout?.imageMargin ?? 0.05,
     showBorder: template.userOptions.border?.showBorder ?? true,
     borderColor: template.userOptions.border?.borderColor ?? '#E5E5E5',
     borderRadius: template.userOptions.border?.borderRadius ?? 0.01,
     shadowEnabled: template.userOptions.shadow?.shadowEnabled ?? true,
     shadowColor: template.userOptions.shadow?.shadowColor ?? 'rgba(0,0,0,0.15)',
-    shadowRadius: template.userOptions.shadow?.shadowRadius ?? 0.006,
+    shadowRadius: template.userOptions.shadow?.shadowRadius ?? 0.015,
     blurRadius: template.userOptions.blur?.blurRadius ?? 0.03,
     vignetteEnabled: template.userOptions.blur?.vignetteEnabled ?? true,
     vignetteStrength: template.userOptions.blur?.vignetteStrength ?? 0.3,
@@ -37,6 +37,7 @@ export function getTemplateDefaultConfig(template: TemplateConfig): Record<strin
     textMargin: template.userOptions.personalText?.margin ?? 0.04,
     textFontSize: template.userOptions.personalText?.fontSize ?? 0.045,
     textOpacity: template.userOptions.personalText?.opacity ?? 0.9,
-    textPosition: template.userOptions.personalText?.position ?? 'bottom-center'
+    textPosition: template.userOptions.personalText?.position ?? 'bottom-center',
+    watermarkScale: template.userOptions.typography?.portraitScale ?? 1
   }
 }

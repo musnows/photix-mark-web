@@ -3,6 +3,7 @@ import { createCanvas, drawText, parseColor } from '~/utils/canvas'
 import { renderTemplate } from './templateRenderer'
 import { formatDateTimeValue, formatExifValue } from '~/lib/editor/exif'
 import { appendSignature, templateSignature } from '~/utils/signature'
+import { resolveTextScale } from './textScale'
 
 /**
  * 富文本处理器
@@ -80,7 +81,10 @@ export class RichTextProcessor extends ImageProcessor {
     }
 
     // 计算文本尺寸
-    const height = this.calculateHeight(config.height, ctx.buffer[0]?.height || 1000)
+    const referenceHeight = ctx.buffer[0]?.height || 1000
+    const referenceWidth = ctx.buffer[0]?.width || 1000
+    const textScale = resolveTextScale(config, referenceWidth, referenceHeight)
+    const height = this.calculateHeight(config.height, referenceHeight) * textScale
     const fontSize = height * 0.8  // 字体大小约为高度的 80%
 
     // 创建临时 canvas 来测量文本宽度
