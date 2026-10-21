@@ -183,6 +183,7 @@
 
             <!-- Download Buttons -->
             <div class="space-y-2 pt-2 border-t">
+              <ExportExifOption v-model="preserveExif" v-model:photography-only="photographyOnly" />
               <ExportDirectory />
               <Button
                 @click="downloadCurrent"
@@ -307,6 +308,7 @@
 
           <!-- 导出 Tab -->
           <div v-show="currentMobileTab === 'export'" class="p-3 space-y-2">
+            <ExportExifOption v-model="preserveExif" v-model:photography-only="photographyOnly" />
             <ExportDirectory />
             <Button
               @click="downloadCurrent"
@@ -382,6 +384,7 @@ import { downloadImages } from '~/utils/download'
 import { canvasToBlob } from '~/utils/canvas'
 import { buildCustomLogoConfig } from '~/utils/customLogos'
 import { mergeExifWithOverrides } from '~/lib/editor/exif'
+import { ExifExportError, preserveExportExif } from '~/lib/editor/exportExif'
 import type { ImageState } from '~/lib/editor/types'
 import { getDefaultSignatureAnchor, hasSignature, type SignatureOptions } from '~/lib/editor/signature'
 import type { TemplateConfig } from '~/lib/templates/types'
@@ -512,6 +515,8 @@ const { processImage } = useImageProcessor()
 
 // 下载进度
 const downloading = ref(false)
+const preserveExif = ref(true)
+const photographyOnly = ref(false)
 const downloadProgress = ref({ current: 0, total: 0, percent: 0 })
 
 // 图片选择对话框
@@ -1142,14 +1147,14 @@ async function downloadCurrent() {
     }
 
     await downloadImages([{
-      blob,
+      blob: await preserveExportExif(blob, activeFile, preserveExif.value, photographyOnly.value),
       name: activeFile.name
     }])
 
     success('导出成功！')
   } catch (error) {
     console.error('Download error:', error)
-    showError('导出失败，请重试')
+    showError(error instanceof ExifExportError ? '无法保留原始 EXIF，请检查原图，或关闭“保留原始 EXIF”后重试' : '导出失败，请重试')
   }
 }
 
@@ -1204,7 +1209,7 @@ async function downloadAll() {
         newProcessedCache.set(file, { canvas, blob })
       }
 
-      results.push({ blob, name: file.name })
+      results.push({ blob: await preserveExportExif(blob, file, preserveExif.value, photographyOnly.value), name: file.name })
       processedCount++
 
       downloadProgress.value = {
@@ -1230,7 +1235,7 @@ async function downloadAll() {
     }
   } catch (error) {
     console.error('Download error:', error)
-    showError('导出失败，请重试')
+    showError(error instanceof ExifExportError ? '无法保留原始 EXIF，请检查原图，或关闭“保留原始 EXIF”后重试' : '导出失败，请重试')
   } finally {
     downloading.value = false
   }
