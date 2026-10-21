@@ -62,6 +62,8 @@ test('internal detector windows retain navigation and IPC isolation', async () =
   const externalLinks = []
   let dialogOwner
   let savedFile
+  let savedSignature
+  let clearedSignature = false
   class TestWindow extends EventEmitter {
     constructor() {
       super()
@@ -102,7 +104,14 @@ test('internal detector windows retain navigation and IPC isolation', async () =
     require: name => {
       if (name === 'electron') return electron
       if (name === './protocol.cjs') return require('../electron/protocol.cjs')
-      if (name === './storage.cjs') return { createExportStore: async () => ({
+      if (name === './storage.cjs') return { createSignatureStore: directory => {
+        assert.equal(directory, '/test/userData/signatures')
+        return {
+          getSignature: () => savedSignature ?? null,
+          saveSignature: file => { savedSignature = file },
+          clearSignature: () => { clearedSignature = true }
+        }
+      }, createExportStore: async () => ({
         getDirectory: () => '/test/exports',
         saveFile: file => { savedFile = file; return '/test/exports/photo.jpg' }
       }) }
@@ -131,6 +140,15 @@ test('internal detector windows retain navigation and IPC isolation', async () =
   const file = { name: 'photo.jpg', bytes: new Uint8Array([1]) }
   assert.equal(await handlers.get('export:save-file')(event, file), '/test/exports/photo.jpg')
   assert.equal(savedFile, file)
+  const signature = { name: 'Signature.png', bytes: new Uint8Array([1]) }
+  assert.equal(await handlers.get('signature:get')(event), null)
+  await handlers.get('signature:save')(event, signature)
+  assert.equal(await handlers.get('signature:get')(event), signature)
+  await handlers.get('signature:clear')(event)
+  assert.equal(clearedSignature, true)
+  for (const channel of ['signature:get', 'signature:save', 'signature:clear']) {
+    await assert.rejects(handlers.get(channel)({ ...event, senderFrame: { url: APP_URL } }, signature), /Untrusted IPC sender/)
+  }
   assert.equal(child.openHandler({ url: 'file:///etc/passwd' }).action, 'deny')
   await assert.rejects(handlers.get('export:get-directory')({ ...event, senderFrame: { url: APP_URL } }), /Untrusted IPC sender/)
   const unregistered = new TestWindow()

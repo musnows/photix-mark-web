@@ -1,6 +1,6 @@
 {
   "name": "photix-mark-web",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "type": "module",
   "private": true,
   "scripts": {
@@ -13,7 +13,7 @@
     "desktop:start": "node scripts/start-desktop.mjs",
     "desktop:pack": "npm run desktop:build && electron-builder --config electron-builder.config.cjs --dir",
     "desktop:dist": "npm run desktop:build && electron-builder --config electron-builder.config.cjs",
-    "test:desktop": "node --test tests/desktop.test.cjs",
+    "test:desktop": "node --test tests/desktop.test.cjs tests/signature-storage.test.cjs",
     "test:metadata": "node --test tests/full-exif.test.ts tests/export-exif.test.ts tests/builtin-logos.test.ts",
     "test:signature": "node --test tests/signature.test.ts",
     "test:hidden-watermark": "node --test tests/hidden-watermark.test.ts tests/hidden-watermark-robust.test.ts",

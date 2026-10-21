@@ -108,7 +108,7 @@
               <CardTitle class="text-base">签名水印</CardTitle>
             </CardHeader>
             <CardContent>
-              <SignatureConfig :model-value="currentConfig.signature" :default-anchor="getDefaultSignatureAnchor(currentTemplate.processors)" @update:model-value="updateCurrentSignature" />
+              <SignatureConfig :model-value="currentConfig.signature" :default-anchor="getDefaultSignatureAnchor(currentTemplate.processors)" :persistence-message="signaturePersistenceMessage" :persistence-error="signaturePersistenceError" :persistence-busy="signaturePersistenceBusy" @update:model-value="updateCurrentSignature" @import="rememberSignature" />
             </CardContent>
           </Card>
 
@@ -264,7 +264,7 @@
 
           <div v-show="currentMobileTab === 'signature'" class="p-3">
             <div class="rounded-xl border border-border bg-card p-3">
-              <SignatureConfig :model-value="currentConfig.signature" :default-anchor="getDefaultSignatureAnchor(currentTemplate.processors)" @update:model-value="updateCurrentSignature" />
+              <SignatureConfig :model-value="currentConfig.signature" :default-anchor="getDefaultSignatureAnchor(currentTemplate.processors)" :persistence-message="signaturePersistenceMessage" :persistence-error="signaturePersistenceError" :persistence-busy="signaturePersistenceBusy" @update:model-value="updateCurrentSignature" @import="rememberSignature" />
             </div>
           </div>
 
@@ -386,7 +386,8 @@ import { buildCustomLogoConfig } from '~/utils/customLogos'
 import { mergeExifWithOverrides } from '~/lib/editor/exif'
 import { ExifExportError, preserveExportExif } from '~/lib/editor/exportExif'
 import type { ImageState } from '~/lib/editor/types'
-import { getDefaultSignatureAnchor, hasSignature, type SignatureOptions } from '~/lib/editor/signature'
+import { DEFAULT_SIGNATURE, getDefaultSignatureAnchor, hasSignature, type SignatureOptions } from '~/lib/editor/signature'
+import { readSignaturePng } from '~/utils/signature'
 import type { TemplateConfig } from '~/lib/templates/types'
 import Button from '~/components/ui/Button.vue'
 import Card from '~/components/ui/Card.vue'
@@ -446,9 +447,82 @@ const currentTemplateId = ref('noProcess')
 // 当前图片的配置（用于UI绑定）
 const currentConfig = ref<Record<string, any>>({})
 const hasActiveSignature = computed(() => hasSignature(currentConfig.value))
+const signaturePersistenceMessage = ref('')
+const signaturePersistenceError = ref(false)
+const signaturePersistenceBusy = ref(false)
+let signatureRevision = 0
+let signatureStorageOperation = 0
 
 function updateCurrentSignature(signature: SignatureOptions | undefined) {
+  signatureRevision++
   currentConfig.value = { ...currentConfig.value, signature }
+  if (!signature && window.photixDesktop) void forgetSignature()
+}
+
+async function rememberSignature(file: File) {
+  const desktop = window.photixDesktop
+  if (!desktop) return
+  const operation = ++signatureStorageOperation
+  signaturePersistenceBusy.value = true
+  signaturePersistenceError.value = false
+  signaturePersistenceMessage.value = '正在保存签名文件…'
+  try {
+    await desktop.saveSignature({ name: file.name, bytes: new Uint8Array(await file.arrayBuffer()) })
+    if (operation === signatureStorageOperation) signaturePersistenceMessage.value = '签名文件已保存到客户端，下次打开自动载入。'
+  } catch (error) {
+    console.error('Failed to save signature file:', error)
+    if (operation === signatureStorageOperation) {
+      signaturePersistenceError.value = true
+      signaturePersistenceMessage.value = '签名本次可用，但保存失败。请重新上传后重试。'
+    }
+  } finally {
+    if (operation === signatureStorageOperation) signaturePersistenceBusy.value = false
+  }
+}
+
+async function forgetSignature() {
+  const operation = ++signatureStorageOperation
+  signaturePersistenceBusy.value = true
+  signaturePersistenceError.value = false
+  signaturePersistenceMessage.value = '正在移除已保存的签名…'
+  try {
+    await window.photixDesktop!.clearSavedSignature()
+    if (operation === signatureStorageOperation) signaturePersistenceMessage.value = '已移除保存的签名，下次打开不再载入。'
+  } catch (error) {
+    console.error('Failed to clear saved signature:', error)
+    if (operation === signatureStorageOperation) {
+      signaturePersistenceError.value = true
+      signaturePersistenceMessage.value = '移除已保存的签名失败，下次打开仍可能载入。请重新上传后再移除。'
+    }
+  } finally {
+    if (operation === signatureStorageOperation) signaturePersistenceBusy.value = false
+  }
+}
+
+async function restoreSignature() {
+  const desktop = window.photixDesktop
+  if (!desktop) return
+  const operation = ++signatureStorageOperation
+  const revision = signatureRevision
+  signaturePersistenceBusy.value = true
+  signaturePersistenceMessage.value = '正在读取已保存的签名…'
+  try {
+    const saved = await desktop.getSavedSignature()
+    const asset = saved ? await readSignaturePng(new File([new Uint8Array(saved.bytes)], saved.name, { type: 'image/png' })) : undefined
+    if (operation !== signatureStorageOperation) return
+    if (asset && revision === signatureRevision && !Object.hasOwn(currentConfig.value, 'signature')) {
+      updateCurrentSignature({ ...DEFAULT_SIGNATURE, ...asset })
+    }
+    signaturePersistenceMessage.value = asset ? '签名文件已保存到客户端，下次打开自动载入。' : '上传后自动保存签名文件，下次打开无需重新选择。'
+  } catch (error) {
+    console.error('Failed to restore saved signature:', error)
+    if (operation === signatureStorageOperation) {
+      signaturePersistenceError.value = true
+      signaturePersistenceMessage.value = '无法读取已保存的签名，请重新上传 PNG。'
+    }
+  } finally {
+    if (operation === signatureStorageOperation) signaturePersistenceBusy.value = false
+  }
 }
 
 // 当前图片的 EXIF（用于显示）
@@ -1244,5 +1318,6 @@ async function downloadAll() {
 // 初始化时加载第一张图片的状态
 onMounted(() => {
   loadCurrentImageState()
+  void restoreSignature()
 })
 </script>
