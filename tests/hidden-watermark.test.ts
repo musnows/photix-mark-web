@@ -45,6 +45,7 @@ test('hidden watermark survives full image and an unaligned crop', () => {
 
   const full = detectHiddenWatermarkInRgba(data, width, height)
   assert.equal(full?.marker, marker)
+  assert.equal(full?.version, 3)
   assert.ok((full?.confidence || 0) > 0.5)
 
   const cropped = crop(data, width, 113, 77, 360, 300)
@@ -63,11 +64,12 @@ test('hidden watermark is not reported for a clean image', () => {
   assert.equal(detectHiddenWatermarkInRgba(data, width, height), null)
 })
 
-test('hidden watermark handles deterministic sensor-like noise', () => {
+test('damaged quality-first watermarks never return an unverified identifier', () => {
   const width = 600
   const height = 440
   const data = createPhoto(width, height)
   embedHiddenWatermarkInRgba(data, width, height, 'noise-test-42')
+  assert.equal(detectHiddenWatermarkInRgba(data, width, height)?.marker, 'noise-test-42')
 
   let state = 0x12345678
   for (let i = 0; i < data.length; i += 4) {
@@ -79,7 +81,8 @@ test('hidden watermark handles deterministic sensor-like noise', () => {
   }
 
   const cropped = crop(data, width, 91, 67, 410, 320)
-  assert.equal(detectHiddenWatermarkInRgba(cropped, 410, 320)?.marker, 'noise-test-42')
+  const result = detectHiddenWatermarkInRgba(cropped, 410, 320)
+  assert.ok(result === null || result.marker === 'noise-test-42')
 })
 
 test('hidden watermark validates marker length', () => {
@@ -102,5 +105,5 @@ test('hidden watermark changes pixels only slightly', () => {
     if ((i & 3) === 3) continue
     maxDifference = Math.max(maxDifference, Math.abs(original[i] - embedded[i]))
   }
-  assert.ok(maxDifference <= 8, `unexpected pixel change: ${maxDifference}`)
+  assert.ok(maxDifference <= 1, `unexpected pixel change: ${maxDifference}`)
 })

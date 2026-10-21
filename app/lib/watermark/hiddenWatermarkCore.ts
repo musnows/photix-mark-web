@@ -1,9 +1,10 @@
-import { detectRobustWatermark, embedRobustWatermark } from './hiddenWatermarkRobust.ts'
+import { detectRobustWatermark } from './hiddenWatermarkRobust.ts'
 import { ROBUST_MAX_BYTES } from './hiddenWatermarkCodec.ts'
 
 /**
- * Invisible watermark with a normalized, error-corrected carrier and a
- * legacy repeated 8x8 DCT carrier for existing images and unscaled crops.
+ * Quality-first watermark with a repeated 8x8 DCT carrier. New images use
+ * at most one RGB level of correction and do not receive a low-frequency
+ * carrier. Detection also supports the stronger V1 and normalized V2 formats.
  *
  * A 784-bit legacy frame is tiled across the whole image. Every frame bit is
  * stored in one 8x8 luminance block, so the identifier remains recoverable
@@ -18,10 +19,12 @@ const BLOCK_SIZE = 8
 const TILE_BLOCKS_X = 28
 const TILE_BLOCKS_Y = 28
 const FRAME_BITS = TILE_BLOCKS_X * TILE_BLOCKS_Y
-const QIM_STEP = 20
+const QIM_STEP = 4
+const LEGACY_QIM_STEP = 20
+const MAX_PIXEL_CHANGE = 1
 const SYNC_BITS_COUNT = 128
 const MAGIC = new Uint8Array([0x50, 0x4d, 0x48, 0x57]) // PMHW
-const VERSION = 1
+const VERSION = 3
 const FAST_SAMPLE_TARGET = 768
 const DENSE_SAMPLE_TARGET = 30000
 const MAX_PHASE_CANDIDATES = 24
@@ -49,7 +52,7 @@ interface PhaseCandidate {
 export interface HiddenWatermarkDetection {
   marker: string
   confidence: number
-  version: 1 | 2
+  version: 1 | 2 | 3
   blockCount: number
   gridOffsetX: number
   gridOffsetY: number
@@ -194,7 +197,7 @@ function readByte(bits: Uint8Array, bitOffset: number): number {
   return value
 }
 
-function buildFrame(marker: string): Uint8Array {
+function buildFrame(marker: string, version: 1 | 3 = VERSION): Uint8Array {
   const payload = new TextEncoder().encode(marker)
   if (payload.length === 0) {
     throw new Error('Hidden watermark marker cannot be empty')
@@ -205,7 +208,7 @@ function buildFrame(marker: string): Uint8Array {
 
   const headerBytes = new Uint8Array(6 + payload.length)
   headerBytes.set(MAGIC, 0)
-  headerBytes[4] = VERSION
+  headerBytes[4] = version
   headerBytes[5] = payload.length
   headerBytes.set(payload, 6)
   const checksum = crc32(headerBytes, 4)
@@ -235,7 +238,7 @@ function buildFrame(marker: string): Uint8Array {
   return carrierBits
 }
 
-function parseFrame(evidence: Float32Array): { marker: string; expectedBits: Uint8Array; confidence: number } | null {
+function parseFrame(evidence: Float32Array): { marker: string; version: 1 | 3; expectedBits: Uint8Array; confidence: number } | null {
   const logicalBits = new Uint8Array(FRAME_BITS)
   for (let logical = 0; logical < FRAME_BITS; logical++) {
     const value = evidence[LOGICAL_TO_PHYSICAL[logical]!]!
@@ -250,7 +253,8 @@ function parseFrame(evidence: Float32Array): { marker: string; expectedBits: Uin
   for (let i = 0; i < MAGIC.length; i++) {
     if (readByte(logicalBits, headerBitOffset + i * 8) !== MAGIC[i]!) return null
   }
-  if (readByte(logicalBits, headerBitOffset + 32) !== VERSION) return null
+  const version = readByte(logicalBits, headerBitOffset + 32)
+  if (version !== VERSION && version !== 1) return null
 
   const length = readByte(logicalBits, headerBitOffset + 40)
   if (length === 0 || length > HIDDEN_WATERMARK_MAX_BYTES) return null
@@ -279,7 +283,7 @@ function parseFrame(evidence: Float32Array): { marker: string; expectedBits: Uin
     return null
   }
 
-  const expectedBits = buildFrame(marker)
+  const expectedBits = buildFrame(marker, version)
   let agreement = 0
   let weight = 0
   for (let physical = 0; physical < FRAME_BITS; physical++) {
@@ -292,6 +296,7 @@ function parseFrame(evidence: Float32Array): { marker: string; expectedBits: Uin
 
   return {
     marker,
+    version,
     expectedBits,
     confidence: weight > 0 ? Math.max(-1, Math.min(1, agreement / weight)) : 0
   }
@@ -347,7 +352,7 @@ function embedBlock(
   for (let y = 0; y < BLOCK_SIZE; y++) {
     const rowOffset = ((pixelY + y) * width + pixelX) * 4
     for (let x = 0; x < BLOCK_SIZE; x++) {
-      const correction = corrections[y * BLOCK_SIZE + x]!
+      const correction = Math.max(-MAX_PIXEL_CHANGE, Math.min(MAX_PIXEL_CHANGE, corrections[y * BLOCK_SIZE + x]!))
       if (correction === 0) continue
       const offset = rowOffset + x * 4
       data[offset] = Math.max(0, Math.min(255, Math.round(data[offset]! + correction)))
@@ -361,14 +366,15 @@ function readBlockSignal(
   data: Uint8ClampedArray | Uint8Array,
   width: number,
   pixelX: number,
-  pixelY: number
+  pixelY: number,
+  step: number
 ): number {
   let signed = 0
   let weight = 0
 
   for (const frequency of FREQUENCIES) {
     const coefficient = getCoefficient(data, width, pixelX, pixelY, frequency.values)
-    const normalized = coefficient / QIM_STEP
+    const normalized = coefficient / step
     const nearest = Math.round(normalized)
     const confidence = 1 - 2 * Math.abs(normalized - nearest)
     signed += (nearest & 1 ? 1 : -1) * confidence
@@ -385,7 +391,6 @@ export function embedHiddenWatermarkInRgba(
   marker: string
 ) {
   const frame = buildFrame(marker)
-  embedRobustWatermark(data, width, height, marker)
   const blockColumns = Math.floor(width / BLOCK_SIZE)
   const blockRows = Math.floor(height / BLOCK_SIZE)
 
@@ -403,7 +408,8 @@ function collectObservations(
   height: number,
   offsetX: number,
   offsetY: number,
-  targetCount: number
+  targetCount: number,
+  step: number
 ): Observation[] {
   const blockColumns = Math.floor((width - offsetX) / BLOCK_SIZE)
   const blockRows = Math.floor((height - offsetY) / BLOCK_SIZE)
@@ -422,7 +428,8 @@ function collectObservations(
       data,
       width,
       offsetX + blockX * BLOCK_SIZE,
-      offsetY + blockY * BLOCK_SIZE
+      offsetY + blockY * BLOCK_SIZE,
+      step
     )
     if (Math.abs(confidence) >= 0.015) {
       observations.push({ blockX, blockY, confidence })
@@ -470,6 +477,9 @@ export function detectHiddenWatermarkInRgba(
 ): HiddenWatermarkDetection | null {
   if (width < BLOCK_SIZE * 4 || height < BLOCK_SIZE * 4) return null
 
+  const aligned = detectAlignedWatermark(data, width, height, QIM_STEP)
+  if (aligned?.version === VERSION) return aligned
+
   const robust = detectRobustWatermark(data, width, height)
   if (robust) {
     return {
@@ -482,6 +492,42 @@ export function detectHiddenWatermarkInRgba(
     }
   }
 
+  return aligned || detectRepeatedWatermark(data, width, height, QIM_STEP) ||
+    detectRepeatedWatermark(data, width, height, LEGACY_QIM_STEP)
+}
+
+function detectAlignedWatermark(
+  data: Uint8ClampedArray | Uint8Array,
+  width: number,
+  height: number,
+  step: number
+): HiddenWatermarkDetection | null {
+  const aligned = collectObservations(data, width, height, 0, 0, DENSE_SAMPLE_TARGET, step)
+  const frame = parseFrame(buildEvidence(aligned, 0, 0))
+  if (frame) {
+    return {
+      marker: frame.marker,
+      confidence: frame.confidence,
+      version: frame.version,
+      blockCount: aligned.length,
+      gridOffsetX: 0,
+      gridOffsetY: 0,
+      framePhaseX: 0,
+      framePhaseY: 0
+    }
+  }
+  return null
+}
+
+function detectRepeatedWatermark(
+  data: Uint8ClampedArray | Uint8Array,
+  width: number,
+  height: number,
+  step: number
+): HiddenWatermarkDetection | null {
+  const aligned = detectAlignedWatermark(data, width, height, step)
+  if (aligned) return aligned
+
   const candidates: PhaseCandidate[] = []
 
   for (let offsetY = 0; offsetY < BLOCK_SIZE; offsetY++) {
@@ -492,7 +538,8 @@ export function detectHiddenWatermarkInRgba(
         height,
         offsetX,
         offsetY,
-        FAST_SAMPLE_TARGET
+        FAST_SAMPLE_TARGET,
+        step
       )
       if (observations.length === 0) continue
 
@@ -524,7 +571,8 @@ export function detectHiddenWatermarkInRgba(
         height,
         candidate.offsetX,
         candidate.offsetY,
-        DENSE_SAMPLE_TARGET
+        DENSE_SAMPLE_TARGET,
+        step
       )
       denseByOffset.set(offsetKey, observations)
     }
@@ -536,7 +584,7 @@ export function detectHiddenWatermarkInRgba(
     const result: HiddenWatermarkDetection = {
       marker: parsed.marker,
       confidence: parsed.confidence,
-      version: 1,
+      version: parsed.version,
       blockCount: observations.length,
       gridOffsetX: candidate.offsetX,
       gridOffsetY: candidate.offsetY,

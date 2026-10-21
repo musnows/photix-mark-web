@@ -28,7 +28,7 @@
         <p class="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Watermark Reader</p>
         <h1 class="mt-2 text-2xl font-bold tracking-tight text-foreground sm:text-4xl">反水印检测</h1>
         <p class="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-          读取 Photix Mark 写入图片像素的隐藏标识。支持新版成片缩小尺寸、JPEG 重压缩后的检测，也兼容旧版水印。
+          读取 Photix Mark 写入图片像素的隐藏标识。新版优先保护画质，建议检测原尺寸导出文件；同时兼容旧版水印。
         </p>
       </div>
 

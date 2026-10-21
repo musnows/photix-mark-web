@@ -5,6 +5,7 @@ import test from 'node:test'
 import sharp from 'sharp'
 import { decodeRobustWatermark, encodeRobustWatermark } from '../app/lib/watermark/hiddenWatermarkCodec.ts'
 import { detectHiddenWatermarkInRgba, embedHiddenWatermarkInRgba } from '../app/lib/watermark/hiddenWatermarkCore.ts'
+import { embedRobustWatermark } from '../app/lib/watermark/hiddenWatermarkRobust.ts'
 
 const demoDirectory = new URL('../public/demo/', import.meta.url)
 const marker = 'musnows / 叙界 2026'
@@ -17,12 +18,12 @@ async function pixels(input: string | URL | Buffer) {
   return { data, width: info.width, height: info.height, channels: 4 as const }
 }
 
-async function exportedPhoto(file: string, text: string, width?: number) {
+async function exportedPhoto(file: string, text: string, width?: number, embed = embedRobustWatermark) {
   const original = await sharp(fileURLToPath(new URL(file, demoDirectory)))
     .resize({ width }).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
   const raw = { width: original.info.width, height: original.info.height, channels: 4 as const }
   const marked = new Uint8Array(original.data)
-  embedHiddenWatermarkInRgba(marked, raw.width, raw.height, text)
+  embed(marked, raw.width, raw.height, text)
   const jpeg = await sharp(marked, { raw }).jpeg({ quality: 98, chromaSubsampling: '4:2:0' }).toBuffer()
   return { jpeg, raw, marked, original: original.data }
 }
@@ -56,7 +57,7 @@ test('detects a V1 fixture made by the original encoder', async () => {
   assert.equal(result?.version, 1)
 })
 
-test('all ten native demo layouts survive quarter-size JPEG recompression', async t => {
+test('legacy V2 detection retains quarter-size JPEG support for all ten demo layouts', async t => {
   // These are ten layouts of the same scene, not ten independent photographs.
   for (const file of await readdir(demoDirectory)) {
     await t.test(file, async () => {
@@ -78,7 +79,7 @@ test('all ten native demo layouts survive quarter-size JPEG recompression', asyn
   }
 })
 
-test('64-byte payload survives quarter-size exports with a final short edge of at least 256 pixels', async t => {
+test('legacy V2 detection retains 64-byte quarter-size JPEG support', async t => {
   for (const file of await readdir(demoDirectory)) {
     await t.test(file, async () => {
       const metadata = await sharp(fileURLToPath(new URL(file, demoDirectory))).metadata()
@@ -96,7 +97,7 @@ test('64-byte payload survives quarter-size exports with a final short edge of a
   }
 })
 
-test('non-integer resizing, portrait images and multiple JPEG generations remain readable', async () => {
+test('legacy V2 non-integer resizing, portrait images and multiple JPEG generations remain readable', async () => {
   const { jpeg, raw } = await exportedPhoto('4_标准水印.JPG', marker, 2048)
   for (const scale of [1, 1.75, 2, 3.3, 4]) {
     const first = await sharp(jpeg).resize(Math.round(raw.width / scale), Math.round(raw.height / scale), { fit: 'fill' })
@@ -108,7 +109,7 @@ test('non-integer resizing, portrait images and multiple JPEG generations remain
   // Rotate before embedding: detection need not know the original orientation.
   const portrait = await sharp(jpeg).rotate(90).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
   const portraitRaw = { width: portrait.info.width, height: portrait.info.height, channels: 4 as const }
-  embedHiddenWatermarkInRgba(portrait.data, portraitRaw.width, portraitRaw.height, 'portrait / 竖图')
+  embedRobustWatermark(portrait.data, portraitRaw.width, portraitRaw.height, 'portrait / 竖图')
   const resized = await sharp(portrait.data, { raw: portraitRaw })
     .resize(Math.round(portraitRaw.width / 4), Math.round(portraitRaw.height / 4), { fit: 'fill' })
     .jpeg({ quality: 60 }).toBuffer()
@@ -116,7 +117,7 @@ test('non-integer resizing, portrait images and multiple JPEG generations remain
   assert.equal(detectHiddenWatermarkInRgba(image.data, image.width, image.height)?.marker, 'portrait / 竖图')
 })
 
-test('independent synthetic textures survive quarter-size JPEG at square and portrait boundaries', async () => {
+test('legacy V2 synthetic textures remain readable after quarter-size JPEG compression', async () => {
   for (const [width, height, seed] of [[2048, 1365, 1], [1365, 2048, 17], [1024, 1024, 83]] as const) {
     const data = new Uint8Array(width * height * 4)
     let state: number = seed
@@ -130,7 +131,7 @@ test('independent synthetic textures survive quarter-size JPEG at square and por
         data[offset + 3] = 255
       }
     }
-    embedHiddenWatermarkInRgba(data, width, height, longestMarker)
+    embedRobustWatermark(data, width, height, longestMarker)
     const exported = await sharp(data, { raw: { width, height, channels: 4 } }).jpeg({ quality: 98 }).toBuffer()
     const received = await sharp(exported).resize(Math.round(width / 4), Math.round(height / 4), { fit: 'fill' })
       .jpeg({ quality: 60 }).toBuffer()
@@ -139,8 +140,8 @@ test('independent synthetic textures survive quarter-size JPEG at square and por
   }
 })
 
-test('V2 limits pixel changes, preserves alpha and retains legacy unscaled crop detection', async () => {
-  const { raw, marked, original } = await exportedPhoto('4_标准水印.JPG', marker, 1600)
+test('V3 limits pixel changes to one level, preserves alpha and supports an unscaled crop', async () => {
+  const { raw, marked, original } = await exportedPhoto('4_标准水印.JPG', marker, 1600, embedHiddenWatermarkInRgba)
   let squared = 0
   let peak = 0
   for (let index = 0; index < marked.length; index++) {
@@ -153,13 +154,79 @@ test('V2 limits pixel changes, preserves alpha and retains legacy unscaled crop 
     peak = Math.max(peak, difference)
   }
   const psnr = 10 * Math.log10(255 ** 2 / (squared / (raw.width * raw.height * 3)))
-  assert.ok(peak <= 20, `Peak RGB change: ${peak}`)
-  assert.ok(psnr >= 38, `PSNR: ${psnr}`)
+  assert.ok(peak <= 1, `Peak RGB change: ${peak}`)
+  assert.ok(psnr >= 48, `PSNR: ${psnr}`)
   const cropped = await sharp(marked, { raw }).extract({ left: 113, top: 77, width: 640, height: 480 })
     .raw().toBuffer()
   const result = detectHiddenWatermarkInRgba(cropped, 640, 480)
   assert.equal(result?.marker, marker)
-  assert.equal(result?.version, 1)
+  assert.equal(result?.version, 3)
+})
+
+test('V3 reads short, multilingual and 64-byte identifiers from original-size JPEG exports', async t => {
+  for (const file of await readdir(demoDirectory)) {
+    await t.test(file, async () => {
+      for (const text of ['Photix Mark', marker, longestMarker]) {
+        const { jpeg, raw, marked } = await exportedPhoto(file, text, undefined, embedHiddenWatermarkInRgba)
+        const lossless = detectHiddenWatermarkInRgba(marked, raw.width, raw.height)
+        assert.equal(lossless?.marker, text, `${file}, original pixels`)
+        assert.equal(lossless?.version, 3)
+        const image = await pixels(jpeg)
+        const result = detectHiddenWatermarkInRgba(image.data, image.width, image.height)
+        assert.equal(result?.marker, text, `${file}, JPEG 98`)
+        assert.equal(result?.version, 3)
+      }
+    })
+  }
+})
+
+test('V3 preserves smooth skies, neutral gradients, clipped borders and alpha within one RGB level', () => {
+  for (const [width, height] of [[1024, 768], [768, 1024]]) {
+    const data = new Uint8ClampedArray(width! * height! * 4)
+    for (let y = 0; y < height!; y++) {
+      for (let x = 0; x < width!; x++) {
+        const offset = (y * width! + x) * 4
+        const value = Math.round(255 * x / (width! - 1))
+        data[offset] = value
+        data[offset + 1] = y < height! / 2 ? Math.min(255, value + 20) : value
+        data[offset + 2] = y < height! / 2 ? Math.min(255, value + 80) : value
+        data[offset + 3] = (x + y) % 256
+      }
+    }
+    const original = new Uint8ClampedArray(data)
+    embedHiddenWatermarkInRgba(data, width!, height!, longestMarker)
+    let squared = 0
+    for (let index = 0; index < data.length; index++) {
+      const difference = data[index]! - original[index]!
+      assert.ok(Math.abs(difference) <= ((index & 3) === 3 ? 0 : 1), `Pixel change at ${index}: ${difference}`)
+      squared += difference * difference
+    }
+    const psnr = 10 * Math.log10(255 ** 2 / (squared / (width! * height! * 3)))
+    assert.ok(psnr >= 48, `PSNR: ${psnr}`)
+    // A full carrier tile spans 224 pixels. Large-area brightness must stay
+    // neutral instead of forming the low-frequency patches seen in V2.
+    for (let top = 0; top + 32 <= height!; top += 32) {
+      for (let left = 0; left + 32 <= width!; left += 32) {
+        let shift = 0
+        for (let y = top; y < top + 32; y++) {
+          for (let x = left; x < left + 32; x++) {
+            const offset = (y * width! + x) * 4
+            shift += data[offset]! - original[offset]!
+          }
+        }
+        assert.ok(Math.abs(shift / 1024) <= 0.1, `Patch brightness shift: ${shift / 1024}`)
+      }
+    }
+    assert.equal(detectHiddenWatermarkInRgba(data, width!, height!)?.marker, longestMarker)
+  }
+})
+
+test('a new V3 identifier takes precedence when the source already contains V2', async () => {
+  const { marked, raw } = await exportedPhoto('4_标准水印.JPG', 'previous V2 identifier', 1600)
+  embedHiddenWatermarkInRgba(marked, raw.width, raw.height, marker)
+  const result = detectHiddenWatermarkInRgba(marked, raw.width, raw.height)
+  assert.equal(result?.marker, marker)
+  assert.equal(result?.version, 3)
 })
 
 test('clean photos, compressed photos and flat images do not produce a marker', async () => {
