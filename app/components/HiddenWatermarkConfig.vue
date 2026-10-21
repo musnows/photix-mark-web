@@ -7,7 +7,7 @@
           <span class="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">可选</span>
         </div>
         <p class="mt-1 text-[11px] leading-relaxed text-muted-foreground sm:text-xs">
-          将标识写入隐藏的低频信号，增强缩小尺寸和 JPEG 重压缩后的恢复能力，同时保留局部裁剪检测。
+          以画质优先的微弱信号写入标识，避免天空和虚化背景出现可见方块。
         </p>
       </div>
       <button
@@ -48,7 +48,7 @@
           标识作为纯文本写入，不会显示在画面上。支持中英文、数字与符号，最多 {{ maxBytes }} 个 UTF-8 字节。
         </p>
         <p class="text-[10px] leading-relaxed text-muted-foreground">
-          建议导出图片短边至少 1024 px，宽高各缩小至 1/4 后仍保留至少 256 px。旧成片需要重新导出才能获得新版抗缩放能力；裁剪后再缩小或极低质量压缩仍可能无法恢复。
+          建议保留原尺寸导出文件。为减少画面变化，新版降低了水印强度；缩放、重压缩、加噪或较小范围的裁剪可能导致标识无法恢复。旧版成片仍可检测。
         </p>
       </div>
     </Transition>

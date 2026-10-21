@@ -27,7 +27,7 @@
           </svg>
         </span>
         <span class="mt-4 text-base font-semibold text-foreground">选择或拖入需要检测的图片</span>
-        <span class="mt-1 text-xs text-muted-foreground sm:text-sm">支持新版水印的缩小、JPEG 重压缩检测，兼容旧版水印</span>
+        <span class="mt-1 text-xs text-muted-foreground sm:text-sm">建议使用原尺寸导出文件，兼容各版本隐藏水印</span>
       </button>
     </div>
 
@@ -52,7 +52,7 @@
         </div>
         <template v-else-if="result === null">
           <p class="mt-3 text-sm font-semibold text-foreground">未检测到隐藏水印</p>
-          <p class="mt-2 text-xs leading-relaxed text-muted-foreground">图片中可能没有通过本工具写入的标识，或经过了大比例缩放与重压缩。</p>
+          <p class="mt-2 text-xs leading-relaxed text-muted-foreground">图片中可能没有通过本工具写入的标识，或信号已在缩放、重压缩、加噪或裁剪中丢失。</p>
         </template>
         <template v-else-if="errorMessage">
           <p class="mt-3 text-sm font-semibold text-destructive">检测失败</p>
@@ -60,7 +60,7 @@
         </template>
         <template v-else-if="result">
           <p class="mt-3 text-sm font-semibold text-foreground">已恢复隐藏标识</p>
-          <p class="mt-2 text-xs leading-relaxed text-muted-foreground">{{ result.version === 2 ? '抗缩放水印 V2 · 校验通过' : '旧版水印 V1 · 校验通过' }}</p>
+          <p class="mt-2 text-xs leading-relaxed text-muted-foreground">{{ result.version === 3 ? '画质优先水印 V3 · 校验通过' : result.version === 2 ? '抗缩放水印 V2 · 校验通过' : '旧版水印 V1 · 校验通过' }}</p>
         </template>
         <button
           v-if="!processing"
@@ -107,8 +107,8 @@
 
     <div class="rounded-2xl border border-border bg-muted/35 px-4 py-4 text-xs leading-relaxed text-muted-foreground sm:px-5">
       <p class="font-medium text-foreground">检测说明</p>
-      <p class="mt-1.5">检测完全在浏览器本地完成，无需原图或预先输入标识。新版先按图片比例定位低频信号，再通过纠错与校验恢复文字；同时兼容旧版像素块水印和未缩放的局部裁剪。</p>
-      <p class="mt-1.5">针对宽高各缩小至 1/4 的图片，建议缩小后短边至少保留 256 px。旧成片需要重新导出才能获得新版抗缩放能力；裁剪与缩放叠加、极低质量压缩或大范围涂抹仍可能导致检测失败。</p>
+      <p class="mt-1.5">检测完全在浏览器本地完成，无需原图或预先输入标识。新版优先保护画质，通过微弱的重复信号与校验码恢复文字；同时兼容 V1 像素块水印和 V2 抗缩放水印。</p>
+      <p class="mt-1.5">建议保留并检测原尺寸导出文件。新版不再承诺缩小至 1/4 后可恢复；缩放、重压缩、加噪或较小范围的裁剪均可能使微弱信号丢失。旧版图片的检测能力不变。</p>
     </div>
   </div>
 </template>
