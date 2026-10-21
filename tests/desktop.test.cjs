@@ -56,7 +56,7 @@ test('directory settings persist, invalid changes preserve settings, and exports
   assert.equal((await createExportStore(settings, directory)).getDirectory(), root)
 })
 
-test('internal detector windows retain navigation and IPC isolation', async () => {
+async function checkDetectorWindowIsolation(platformPath) {
   const windows = []
   const handlers = new Map()
   const externalLinks = []
@@ -103,9 +103,10 @@ test('internal detector windows retain navigation and IPC isolation', async () =
     process: { platform: 'darwin' },
     require: name => {
       if (name === 'electron') return electron
+      if (name === 'node:path') return platformPath
       if (name === './protocol.cjs') return require('../electron/protocol.cjs')
       if (name === './storage.cjs') return { createSignatureStore: directory => {
-        assert.equal(directory, '/test/userData/signatures')
+        assert.equal(directory, platformPath.join('/test/userData', 'signatures'))
         return {
           getSignature: () => savedSignature ?? null,
           saveSignature: file => { savedSignature = file },
@@ -158,4 +159,7 @@ test('internal detector windows retain navigation and IPC isolation', async () =
   child.webContents.mainFrame.url = 'photix://app/detect'
   child.emit('closed')
   await assert.rejects(handlers.get('export:get-directory')(event), /Untrusted IPC sender/)
-})
+}
+
+test('internal detector windows retain navigation and IPC isolation with POSIX paths', () => checkDetectorWindowIsolation(path.posix))
+test('internal detector windows retain navigation and IPC isolation with Windows paths', () => checkDetectorWindowIsolation(path.win32))
