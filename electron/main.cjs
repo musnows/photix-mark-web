@@ -2,7 +2,7 @@ const { app, BrowserWindow, dialog, ipcMain, Menu, net, protocol, session, shell
 const path = require('node:path')
 const { pathToFileURL } = require('node:url')
 const { APP_URL, isAppUrl, resolveAsset } = require('./protocol.cjs')
-const { createExportStore } = require('./storage.cjs')
+const { createExportStore, createSignatureStore } = require('./storage.cjs')
 
 protocol.registerSchemesAsPrivileged([
   { scheme: 'photix', privileges: { standard: true, secure: true, supportFetchAPI: true } }
@@ -10,6 +10,7 @@ protocol.registerSchemesAsPrivileged([
 
 let mainWindow
 let exportStore
+let signatureStore
 const appWindows = new Set()
 
 function handle(channel, callback) {
@@ -109,6 +110,7 @@ if (!app.requestSingleInstanceLock()) {
   })
   app.whenReady().then(async () => {
     exportStore = await createExportStore(path.join(app.getPath('userData'), 'desktop-settings.json'), app.getPath('downloads'))
+    signatureStore = createSignatureStore(path.join(app.getPath('userData'), 'signatures'), file => shell.trashItem(file))
     protocol.handle('photix', async request => {
       try {
         if (!['GET', 'HEAD'].includes(request.method)) return new Response('Method not allowed', { status: 405 })
@@ -143,6 +145,9 @@ if (!app.requestSingleInstanceLock()) {
       if (error) throw new Error(error)
     })
     handle('export:save-file', (_window, file) => exportStore.saveFile(file))
+    handle('signature:get', () => signatureStore.getSignature())
+    handle('signature:save', (_window, file) => signatureStore.saveSignature(file))
+    handle('signature:clear', () => signatureStore.clearSignature())
     Menu.setApplicationMenu(Menu.buildFromTemplate([
       ...(process.platform === 'darwin' ? [{ role: 'appMenu' }] : []),
       { role: 'fileMenu' },

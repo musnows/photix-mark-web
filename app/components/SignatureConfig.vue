@@ -23,9 +23,10 @@
       </div>
     </div>
     <div class="flex flex-wrap gap-2">
-      <button type="button" :disabled="uploading" class="rounded-lg border border-border bg-background px-3 py-2 text-xs font-medium transition hover:border-primary hover:text-primary disabled:opacity-50" @click="fileInput?.click()">{{ uploading ? '读取中…' : signature.dataUrl ? '更换 PNG' : '上传签名 PNG' }}</button>
-      <button v-if="signature.dataUrl" type="button" class="rounded-lg px-3 py-2 text-xs text-muted-foreground hover:bg-muted hover:text-destructive" @click="emit('update:modelValue', undefined)">移除签名</button>
+      <button type="button" :disabled="uploading || persistenceBusy" class="rounded-lg border border-border bg-background px-3 py-2 text-xs font-medium transition hover:border-primary hover:text-primary disabled:opacity-50" @click="fileInput?.click()">{{ uploading ? '读取中…' : signature.dataUrl ? '更换 PNG' : '上传签名 PNG' }}</button>
+      <button v-if="signature.dataUrl" type="button" :disabled="uploading || persistenceBusy" class="rounded-lg px-3 py-2 text-xs text-muted-foreground hover:bg-muted hover:text-destructive disabled:opacity-50" @click="emit('update:modelValue', undefined)">移除签名</button>
     </div>
+    <p v-if="persistenceMessage" :role="persistenceError ? 'alert' : 'status'" class="text-[11px] leading-5" :class="persistenceError ? 'text-destructive' : 'text-muted-foreground'">{{ persistenceMessage }}</p>
     <p v-if="uploadError" role="alert" class="text-xs leading-5 text-destructive">{{ uploadError }}</p>
 
     <div v-if="signature.dataUrl" class="space-y-4 border-t border-border pt-3" :class="{ 'opacity-60': !signature.enabled }">
@@ -91,8 +92,8 @@ import { computed, ref } from 'vue'
 import { DEFAULT_SIGNATURE, MIN_SIGNATURE_WIDTH, MAX_SIGNATURE_WIDTH, clampSignatureOpacity, clampSignatureWidth, setSignatureWidth, type SignatureAnchor, type SignatureOptions } from '~/lib/editor/signature'
 import { readSignaturePng } from '~/utils/signature'
 
-const props = defineProps<{ modelValue?: SignatureOptions; defaultAnchor?: SignatureAnchor }>()
-const emit = defineEmits<{ 'update:modelValue': [value: SignatureOptions | undefined] }>()
+const props = defineProps<{ modelValue?: SignatureOptions; defaultAnchor?: SignatureAnchor; persistenceMessage?: string; persistenceError?: boolean; persistenceBusy?: boolean }>()
+const emit = defineEmits<{ 'update:modelValue': [value: SignatureOptions | undefined]; import: [file: File] }>()
 const signature = computed(() => ({ ...DEFAULT_SIGNATURE, ...props.modelValue }))
 const selectedAnchor = computed(() => signature.value.anchor ?? props.defaultAnchor ?? 'params')
 const sizePercent = computed(() => Math.round(clampSignatureWidth(signature.value.width) * 100))
@@ -152,6 +153,7 @@ async function upload(event: Event) {
   try {
     const asset = await readSignaturePng(file)
     update({ ...asset, enabled: true })
+    emit('import', file)
   } catch (error) {
     console.error('Failed to import signature PNG:', error)
     uploadError.value = '无法读取签名。请上传含可见内容的有效 PNG（不超过 10 MB、1600 万像素）。'
