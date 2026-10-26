@@ -2,6 +2,7 @@ const core = require('../../lib/core')
 
 Page({
   data: {
+    appVersion: core.APP_VERSION,
     templates: core.templates.map((item, index) => ({ id: item.id, name: item.name, number: String(index + 1).padStart(2, '0') })),
     busy: false,
     photoCount: 0,

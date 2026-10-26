@@ -6,6 +6,7 @@ const clone = value => JSON.parse(JSON.stringify(value))
 
 Page({
   data: {
+    appVersion: core.APP_VERSION,
     photos: [], activeIndex: 0, tab: 'template',
     tabs: [{ id: 'template', name: '模板' }, { id: 'exif', name: '参数' }, { id: 'signature', name: '签名' }, { id: 'export', name: '导出' }],
     templates: core.templates.map(item => ({ id: item.id, name: item.name })),

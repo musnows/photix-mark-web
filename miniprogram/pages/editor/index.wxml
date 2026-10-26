@@ -61,7 +61,7 @@
       <button wx:if="{{lastExport}}" id="detect-export" class="secondary apply-all" bindtap="detectExport">检测刚才导出的照片</button>
     </block>
   </view>
-  <view class="editor-footer hint">所有处理均在本地完成</view>
+  <view class="editor-footer hint"><view>映签 · <text class="mono">v{{appVersion}}</text></view><view class="footer-caption">所有处理均在本地完成</view></view>
   <view class="save-bar"><view wx:if="{{exporting}}" class="export-progress row"><text>{{progress}}</text><button class="link" bindtap="cancelExport">停止</button></view><view wx:else class="row"><button id="save-current" class="{{photos.length > 1 ? 'secondary save-current' : 'primary save-single'}}" disabled="{{importing || rendering || !preview}}" bindtap="savePhotos">保存当前照片</button><button wx:if="{{photos.length > 1}}" id="save-all" class="primary save-all" data-all="true" disabled="{{importing || rendering || !preview}}" bindtap="savePhotos">全部保存 · {{photos.length}}</button></view></view>
   <canvas type="2d" id="exportCanvas" class="canvas-export"></canvas>
 </view>

@@ -13,6 +13,7 @@ import { Blob, TextEncoder, insertPngExif } from './binary'
 import { api, readBytes, writeBytes, installPlatform, releaseCanvases, fitDimensions } from './platform'
 
 declare const wx: any
+export { version as APP_VERSION } from '../package.json'
 export { api, readBytes, fitDimensions, EDITABLE_EXIF_FIELDS, DATE_TIME_FORMAT_OPTIONS, DEFAULT_SIGNATURE }
 export const templates = ['noProcess', 'standard1', 'standard2', 'logoCentered', 'blurBackground', 'nikonBlur', 'folderNameParams', 'centeredWatermark', 'sidebarWatermark', 'centeredWatermark2', 'personalText'].map(key => (templateDefinitions as any)[key])
 export const logos = BUILTIN_LOGOS.map(logo => ({ ...logo, path: logo.path.replace(/\.svg$/, '.png') })).filter((logo, index, list) => list.findIndex(item => item.path === logo.path) === index)

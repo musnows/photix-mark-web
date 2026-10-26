@@ -1,7 +1,7 @@
 const core = require('../../lib/core')
 
 Page({
-  data: { path: '', busy: false, checked: false, result: null, error: '' },
+  data: { appVersion: core.APP_VERSION, path: '', busy: false, checked: false, result: null, error: '' },
   onLoad(options) {
     this.unloaded = false
     if (options.exported && getApp().globalData.detectPath) this.runDetection(getApp().globalData.detectPath)

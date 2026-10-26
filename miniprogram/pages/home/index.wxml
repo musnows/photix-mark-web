@@ -20,5 +20,5 @@
     <view class="row section-head"><view class="title">选一款，适合你的风格</view><text class="badge">11 款模板</text></view>
     <view class="template-grid"><view wx:for="{{templates}}" wx:key="id" class="template-card" data-id="{{item.id}}" bindtap="useDemo"><view class="template-mini template-{{item.id}}"><image src="/assets/sample.jpg" mode="aspectFill" /><view class="mini-caption"><view></view><view></view></view></view><view class="row template-label"><text>{{item.name}}</text><text class="mono muted">{{item.number}}</text></view></view></view>
   </view>
-  <view class="footer mono">映签 · 每一张，都是你的作品</view>
+  <view class="footer"><view>映签 · <text class="mono">v{{appVersion}}</text></view><view class="footer-caption">每一张，都是你的作品</view></view>
 </view>
