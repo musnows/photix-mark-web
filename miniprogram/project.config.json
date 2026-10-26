@@ -1,0 +1,14 @@
+{
+  "appid": "touristappid",
+  "projectname": "Photix Mark",
+  "compileType": "miniprogram",
+  "miniprogramRoot": "./",
+  "libVersion": "3.7.0",
+  "setting": {
+    "es6": true,
+    "minified": true,
+    "postcss": true,
+    "urlCheck": true,
+    "enhance": true
+  }
+}
