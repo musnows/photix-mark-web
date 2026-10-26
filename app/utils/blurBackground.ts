@@ -1,4 +1,4 @@
-import { createCanvas } from './canvas'
+import { createCanvas, drawBlurredCanvas } from './canvas'
 
 export function blurBackground(
   source: HTMLCanvasElement,
@@ -30,9 +30,7 @@ export function blurBackground(
 
   const result = createCanvas(width, height)
   const ctx = result.getContext('2d')!
-  ctx.filter = `blur(${radius}px)`
-  ctx.drawImage(padded, -padding, -padding)
-  ctx.filter = 'none'
+  drawBlurredCanvas(ctx, padded, -padding, -padding, radius)
 
   const amount = Number.isFinite(strength) ? Math.min(1, Math.max(0, strength)) : 0
   if (amount > 0) {

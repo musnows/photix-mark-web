@@ -4,6 +4,8 @@ import { filterPhotographyExif } from './photographyExif.ts'
 const exifCache = new WeakMap<Blob, Promise<Uint8Array | undefined>>()
 const exifHeader = new Uint8Array([0x45, 0x78, 0x69, 0x66, 0, 0])
 
+export { extractExif, normalizeExif }
+
 export class ExifExportError extends Error {
   constructor(cause: unknown) {
     super('Failed to preserve original EXIF', { cause })

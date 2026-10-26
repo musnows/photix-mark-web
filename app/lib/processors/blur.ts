@@ -1,5 +1,5 @@
 import { ImageProcessor, type ProcessorContext } from './types'
-import { createCanvas } from '~/utils/canvas'
+import { createCanvas, drawBlurredCanvas } from '~/utils/canvas'
 import { blurBackground } from '~/utils/blurBackground'
 
 /**
@@ -41,11 +41,10 @@ export class BlurProcessor extends ImageProcessor {
     const bCtx = blurredCanvas.getContext('2d')!
 
     // 使用 CSS filter 实现模糊（性能最好）
-    bCtx.filter = `blur(${blurRadius}px)`
-    bCtx.drawImage(canvas, 0, 0)
+    drawBlurredCanvas(bCtx, canvas, 0, 0, blurRadius)
 
     // 重置 filter
-    bCtx.filter = 'none'
+    if ('filter' in bCtx) bCtx.filter = 'none'
 
     // 将模糊后的图像添加到 buffer（不替换原图）
     ctx.buffer.push(blurredCanvas)

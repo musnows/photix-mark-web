@@ -2,10 +2,36 @@
  * Canvas 工具函数
  */
 
+export interface CanvasPlatform {
+  createCanvas: (width: number, height: number) => HTMLCanvasElement
+  loadImage: (src: string) => Promise<HTMLImageElement>
+  loadFont: (font: string) => Promise<unknown>
+  drawBlurred: (ctx: CanvasRenderingContext2D, source: HTMLCanvasElement, x: number, y: number, radius: number) => void
+}
+
+let canvasPlatform: CanvasPlatform | undefined
+
+export function configureCanvasPlatform(platform?: CanvasPlatform) {
+  canvasPlatform = platform
+}
+
+export function loadCanvasFont(font: string): Promise<unknown> {
+  if (canvasPlatform) return canvasPlatform.loadFont(font)
+  return typeof document !== 'undefined' && document.fonts ? document.fonts.load(font) : Promise.resolve()
+}
+
+export function drawBlurredCanvas(ctx: CanvasRenderingContext2D, source: HTMLCanvasElement, x: number, y: number, radius: number) {
+  if (canvasPlatform) return canvasPlatform.drawBlurred(ctx, source, x, y, radius)
+  ctx.filter = `blur(${radius}px)`
+  ctx.drawImage(source, x, y)
+  ctx.filter = 'none'
+}
+
 /**
  * 创建 Canvas 元素
  */
 export function createCanvas(width: number, height: number): HTMLCanvasElement {
+  if (canvasPlatform) return canvasPlatform.createCanvas(width, height)
   const canvas = document.createElement('canvas')
   canvas.width = width
   canvas.height = height
@@ -109,6 +135,7 @@ export function drawText(ctx: CanvasRenderingContext2D, options: DrawTextOptions
  * 加载图片
  */
 export function loadImage(src: string): Promise<HTMLImageElement> {
+  if (canvasPlatform) return canvasPlatform.loadImage(src)
   return new Promise((resolve, reject) => {
     const img = new Image()
     img.onload = () => resolve(img)

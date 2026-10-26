@@ -1,3 +1,5 @@
+import { createCanvas } from './canvas'
+
 export function getInkCenterY(canvas: HTMLCanvasElement): number | undefined {
   const pixels = canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height).data
   const rows = new Float64Array(canvas.height)
@@ -58,9 +60,7 @@ export function trimHorizontalInk(canvas: HTMLCanvasElement): HTMLCanvasElement 
     }
   }
   if (right < left) return canvas
-  const trimmed = document.createElement('canvas')
-  trimmed.width = right - left + 1
-  trimmed.height = canvas.height
+  const trimmed = createCanvas(right - left + 1, canvas.height)
   trimmed.getContext('2d')!.drawImage(canvas, -left, 0)
   return trimmed
 }

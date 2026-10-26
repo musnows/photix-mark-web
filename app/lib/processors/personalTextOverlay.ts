@@ -1,5 +1,5 @@
 import { ImageProcessor, type ProcessorContext } from './types'
-import { createCanvas, parseColor } from '~/utils/canvas'
+import { createCanvas, parseColor, loadCanvasFont } from '~/utils/canvas'
 
 type PersonalTextPosition = 'bottom-center' | 'top-center' | 'left-bottom' | 'right-bottom'
 
@@ -100,10 +100,8 @@ export class PersonalTextOverlayProcessor extends ImageProcessor {
   }
 
   private async loadFont(fontWeight: number, reference: number): Promise<void> {
-    if (!('fonts' in document)) return
-
     const fontSize = Math.max(12, Math.round(reference * 0.045))
-    await document.fonts.load(`normal ${fontWeight} ${fontSize}px ${FONT_FAMILY}`)
+    await loadCanvasFont(`normal ${fontWeight} ${fontSize}px ${FONT_FAMILY}`)
   }
 
   private resolvePosition(position: unknown): PersonalTextPosition {

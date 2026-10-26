@@ -1,5 +1,5 @@
 import { ImageProcessor, type ProcessorContext } from './types'
-import { createCanvas, drawText, loadImage, parseColor } from '~/utils/canvas'
+import { createCanvas, drawText, loadImage, parseColor, loadCanvasFont } from '~/utils/canvas'
 import { renderTemplate } from './templateRenderer'
 import { alignInkLayer, getInkCenterY, trimHorizontalInk } from '~/utils/inkAlignment'
 import { appendSignature, templateSignature } from '~/utils/signature'
@@ -48,7 +48,7 @@ export class MultiRichTextProcessor extends ImageProcessor {
     const textSpacing = this.calculateSpacing(config.text_spacing, referenceWidth)  // 使用图片宽度作为参考
 
     await Promise.all([...new Set(segments.filter((seg: any) => seg.text).map((seg: any) => seg.is_bold ? '700' : '300'))].map(weight =>
-      document.fonts.load(`${weight} ${fontSize}px "Alibaba PuHuiTi"`)
+      loadCanvasFont(`${weight} ${fontSize}px "Alibaba PuHuiTi"`)
     ))
 
     // 创建临时 canvas 测量文本
@@ -60,7 +60,7 @@ export class MultiRichTextProcessor extends ImageProcessor {
         const image = await loadImage(seg.image)
         // 固定排版占位，缩放标识时不改变两侧文字的尺寸和位置。
         const baseImageHeight = height * 0.8
-        const aspectRatio = image.naturalWidth / image.naturalHeight
+        const aspectRatio = (image.naturalWidth || image.width) / (image.naturalHeight || image.height)
         const width = Math.ceil(baseImageHeight * aspectRatio)
         const scale = Number(seg.image_scale)
         const imageHeight = baseImageHeight * (Number.isFinite(scale) && scale > 0 ? scale : 1)
@@ -80,7 +80,9 @@ export class MultiRichTextProcessor extends ImageProcessor {
       tempCtx.font = `${fontWeight} ${fontSize}px ${fontFamily}`
       const metrics = tempCtx.measureText(seg.text)
       const width = Math.ceil(metrics.width)
-      const baselineOffset = (metrics.actualBoundingBoxAscent - metrics.actualBoundingBoxDescent) / 2
+      const baselineOffset = Number.isFinite(metrics.actualBoundingBoxAscent) && Number.isFinite(metrics.actualBoundingBoxDescent)
+        ? (metrics.actualBoundingBoxAscent - metrics.actualBoundingBoxDescent) / 2
+        : fontSize * 0.3
       const glyphPadding = 2
       const glyphWidth = width + glyphPadding * 2
       const glyphHeight = height + glyphPadding * 2

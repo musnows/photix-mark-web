@@ -21,8 +21,10 @@ export function signatureColor(options: SignatureOptions, background = '#FFFFFF'
 
 export async function signatureImage(dataUrl: string, color: string | null = null): Promise<HTMLCanvasElement> {
   const image = await loadImage(dataUrl)
-  if (image.naturalWidth * image.naturalHeight > 16000000) throw new Error('PNG dimensions are too large')
-  const canvas = createCanvas(image.naturalWidth, image.naturalHeight)
+  const width = image.naturalWidth || image.width
+  const height = image.naturalHeight || image.height
+  if (width * height > 16000000) throw new Error('PNG dimensions are too large')
+  const canvas = createCanvas(width, height)
   const ctx = canvas.getContext('2d')!
   ctx.drawImage(image, 0, 0)
   if (color) {
