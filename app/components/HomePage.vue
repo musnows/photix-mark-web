@@ -7,9 +7,9 @@
         <!-- Logo & Title -->
         <div class="text-center mb-6 md:mb-12">
           <div class="w-16 h-16 md:w-24 md:h-24 flex items-center justify-center mx-auto mb-4 md:mb-6">
-            <img src="/logo.svg" alt="Photix Mark Logo" class="w-full h-full object-contain" />
+            <img src="/logo.svg" alt="映签 Logo" class="w-full h-full object-contain" />
           </div>
-          <h1 class="text-3xl md:text-6xl font-bold text-foreground mb-2 md:mb-4">Photix Mark</h1>
+          <h1 class="text-3xl md:text-6xl font-bold text-foreground mb-2 md:mb-4">映签</h1>
           <div class="flex items-center justify-center gap-2 mb-3 md:mb-4">
             <ThemeToggle />
             <HiddenWatermarkButton />
@@ -329,7 +329,7 @@
 
             <!-- Content -->
             <div class="flex-1 text-center md:text-left">
-              <h3 class="text-lg md:text-2xl font-bold text-foreground mb-1 md:mb-2">Photix Crop</h3>
+              <h3 class="text-lg md:text-2xl font-bold text-foreground mb-1 md:mb-2">在线图片裁剪工具</h3>
               <p class="text-xs md:text-base text-muted-foreground mb-2 md:mb-4">
                 专业的在线图片裁剪工具，支持小红书3:5、朋友圈9宫格等多种尺寸比例。100%本地处理，保护隐私安全。支持批量裁剪、实时预览、一键保存，让图片完美适配各大社交平台。
               </p>
@@ -397,7 +397,7 @@
           </a>
           <span class="text-muted-foreground hidden md:inline">•</span>
           <a href="https://crop.photix.cc" target="_blank" rel="noopener noreferrer" class="text-muted-foreground hover:text-primary transition-colors">
-            Photix Crop
+            在线图片裁剪工具
           </a>
           <span class="text-muted-foreground hidden md:inline">•</span>
           <span class="text-muted-foreground flex items-center gap-1">
@@ -408,7 +408,7 @@
           </span>
         </div>
         <p class="text-xs md:text-sm text-muted-foreground">
-          © 2025 Photix Mark • 免费的相机水印生成工具 • Leoonliang
+          © 2025 映签 • 免费的相机水印生成工具 • Leoonliang
         </p>
       </div>
     </div>

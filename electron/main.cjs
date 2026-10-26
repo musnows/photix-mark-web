@@ -3,6 +3,10 @@ const path = require('node:path')
 const { pathToFileURL } = require('node:url')
 const { APP_URL, isAppUrl, resolveAsset } = require('./protocol.cjs')
 const { createExportStore, createSignatureStore } = require('./storage.cjs')
+const { preserveUserDataDirectory } = require('./dataDirectory.cjs')
+
+app.setName('映签')
+preserveUserDataDirectory(app)
 
 protocol.registerSchemesAsPrivileged([
   { scheme: 'photix', privileges: { standard: true, secure: true, supportFetchAPI: true } }
@@ -43,7 +47,7 @@ function secureWindow(window) {
       return {
         action: 'allow',
         overrideBrowserWindowOptions: {
-          title: 'Photix Mark',
+          title: '映签',
           width: 1100,
           height: 900,
           minWidth: 420,
@@ -77,7 +81,7 @@ function secureWindow(window) {
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    title: 'Photix Mark',
+    title: '映签',
     width: 1440,
     height: 960,
     minWidth: 420,
@@ -160,8 +164,8 @@ if (!app.requestSingleInstanceLock()) {
       if (BrowserWindow.getAllWindows().length === 0) createWindow()
     })
   }).catch(error => {
-    console.error('Failed to start Photix Mark:', error)
-    dialog.showErrorBox('Photix Mark 启动失败', '无法加载客户端，请检查应用文件和设置目录。')
+    console.error('Failed to start Yingqian:', error)
+    dialog.showErrorBox('映签 启动失败', '无法加载客户端，请检查应用文件和设置目录。')
     app.quit()
   })
 }

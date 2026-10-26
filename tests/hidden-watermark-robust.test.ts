@@ -166,7 +166,7 @@ test('V3 limits pixel changes to one level, preserves alpha and supports an unsc
 test('V3 reads short, multilingual and 64-byte identifiers from original-size JPEG exports', async t => {
   for (const file of await readdir(demoDirectory)) {
     await t.test(file, async () => {
-      for (const text of ['Photix Mark', marker, longestMarker]) {
+      for (const text of ['映签', marker, longestMarker]) {
         const { jpeg, raw, marked } = await exportedPhoto(file, text, undefined, embedHiddenWatermarkInRgba)
         const lossless = detectHiddenWatermarkInRgba(marked, raw.width, raw.height)
         assert.equal(lossless?.marker, text, `${file}, original pixels`)

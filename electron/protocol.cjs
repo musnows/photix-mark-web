@@ -1,5 +1,6 @@
 const path = require('node:path')
 
+// Preserve the origin so existing renderer preferences remain available.
 const APP_URL = 'photix://app/'
 
 function isAppUrl(value) {

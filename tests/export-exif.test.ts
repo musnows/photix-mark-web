@@ -73,7 +73,7 @@ test('exports original EXIF by default, preserving GPS, copyright, MakerNote and
   assert.deepEqual(result.exif, original.exif)
   assert.deepEqual(result.gps, original.gps)
   assert.equal(result.ifd0.Model, 'NIKON Zf')
-  assert.equal(result.ifd0.Copyright, 'Copyright Photix 2026')
+  assert.equal(result.ifd0.Copyright, 'Copyright Yingqian 2026')
   assert.equal(exported.type, 'image/jpeg')
   assert.deepEqual(await sharp(Buffer.from(await exported.arrayBuffer())).raw().toBuffer(), await sharp(image).raw().toBuffer())
   assert.deepEqual(await source.arrayBuffer(), await new Blob([metadataFixture(image)]).arrayBuffer())
@@ -118,7 +118,7 @@ test('preserves EXIF from PNG and WebP sources', async () => {
     assert.ok(original.exif)
     const exported = await read(await preserveExportExif(output, source))
     assert.equal(exported.ifd0.Model, 'NIKON Zf')
-    assert.equal(exported.ifd0.Copyright, 'Copyright Photix 2026')
+    assert.equal(exported.ifd0.Copyright, 'Copyright Yingqian 2026')
     assert.deepEqual(exported.gps.GPSLatitude, [31, 13, 0])
     assert.deepEqual(Array.from(exported.exif.MakerNote), [78, 105, 107, 111, 110, 0, 254, 255])
   }

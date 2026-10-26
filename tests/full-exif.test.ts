@@ -10,8 +10,8 @@ test('full metadata retains non-shooting tags, original values, GPS, XMP and bin
   const result = await pending
   assert.equal(result.ifd0.Make, 'NIKON CORPORATION')
   assert.equal(result.ifd0.Software, 'Metadata fixture editor')
-  assert.equal(result.ifd0.Copyright, 'Copyright Photix 2026')
-  assert.equal(result.ifd0.Artist, 'Photix test photographer')
+  assert.equal(result.ifd0.Copyright, 'Copyright Yingqian 2026')
+  assert.equal(result.ifd0.Artist, 'Yingqian test photographer')
   assert.equal(result.exif.DateTimeOriginal, '2026:10:15 12:34:56')
   assert.deepEqual(Array.from(result.exif.MakerNote), [0x4e, 0x69, 0x6b, 0x6f, 0x6e, 0, 0xfe, 0xff])
   assert.ok(result.exif.UserComment)

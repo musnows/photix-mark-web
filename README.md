@@ -1,8 +1,8 @@
-# Photix Mark Web
+# 映签
 
 <div align="center">
   <a href="https://mark.photix.cc" target="_blank">
-    <img src="./public/og-image.jpg" alt="Photix Mark Web" width="400">
+    <img src="./public/og-image.jpg" alt="映签" width="400">
   </a>
   <br>
   <p><strong>批量为您的照片添加专业水印</strong></p>

@@ -12,8 +12,8 @@
           </svg>
         </NuxtLink>
         <NuxtLink to="/" class="flex min-w-0 items-center gap-2.5">
-          <img src="/logo.svg" alt="Photix Mark" class="h-8 w-8 object-contain" />
-          <span class="truncate text-sm font-semibold text-foreground sm:text-base">Photix Mark</span>
+          <img src="/logo.svg" alt="映签" class="h-8 w-8 object-contain" />
+          <span class="truncate text-sm font-semibold text-foreground sm:text-base">映签</span>
         </NuxtLink>
         <span class="hidden rounded-full border border-border bg-muted/70 px-2.5 py-1 text-[11px] font-medium text-muted-foreground sm:inline-flex">隐藏水印检测</span>
         <div class="ml-auto flex items-center gap-2">
@@ -28,7 +28,7 @@
         <p class="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Watermark Reader</p>
         <h1 class="mt-2 text-2xl font-bold tracking-tight text-foreground sm:text-4xl">反水印检测</h1>
         <p class="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-          读取 Photix Mark 写入图片像素的隐藏标识。新版优先保护画质，建议检测原尺寸导出文件；同时兼容旧版水印。
+          读取 映签 写入图片像素的隐藏标识。新版优先保护画质，建议检测原尺寸导出文件；同时兼容旧版水印。
         </p>
       </div>
 

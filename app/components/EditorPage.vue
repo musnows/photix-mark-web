@@ -4,10 +4,10 @@
     <header class="bg-background/80 backdrop-blur-xl border-b border-border h-16 flex-shrink-0 items-center pl-6 pr-6 shadow-sm hidden lg:flex">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 flex items-center justify-center">
-          <img src="/logo.svg" alt="Photix Mark Logo" class="w-full h-full object-contain" />
+          <img src="/logo.svg" alt="映签 Logo" class="w-full h-full object-contain" />
         </div>
         <div>
-          <h1 class="font-bold text-lg text-foreground tracking-tight">Photix Mark</h1>
+          <h1 class="font-bold text-lg text-foreground tracking-tight">映签</h1>
           <p class="text-xs text-muted-foreground">{{ files.length }} 张图片</p>
         </div>
       </div>
@@ -456,11 +456,11 @@ let signatureStorageOperation = 0
 function updateCurrentSignature(signature: SignatureOptions | undefined) {
   signatureRevision++
   currentConfig.value = { ...currentConfig.value, signature }
-  if (!signature && window.photixDesktop) void forgetSignature()
+  if (!signature && window.yingqianDesktop) void forgetSignature()
 }
 
 async function rememberSignature(file: File) {
-  const desktop = window.photixDesktop
+  const desktop = window.yingqianDesktop
   if (!desktop) return
   const operation = ++signatureStorageOperation
   signaturePersistenceBusy.value = true
@@ -486,7 +486,7 @@ async function forgetSignature() {
   signaturePersistenceError.value = false
   signaturePersistenceMessage.value = '正在移除已保存的签名…'
   try {
-    await window.photixDesktop!.clearSavedSignature()
+    await window.yingqianDesktop!.clearSavedSignature()
     if (operation === signatureStorageOperation) signaturePersistenceMessage.value = '已移除保存的签名，下次打开不再载入。'
   } catch (error) {
     console.error('Failed to clear saved signature:', error)
@@ -500,7 +500,7 @@ async function forgetSignature() {
 }
 
 async function restoreSignature() {
-  const desktop = window.photixDesktop
+  const desktop = window.yingqianDesktop
   if (!desktop) return
   const operation = ++signatureStorageOperation
   const revision = signatureRevision

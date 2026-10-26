@@ -1,7 +1,7 @@
 {
   "pages": ["pages/home/index", "pages/editor/index", "pages/detect/index"],
   "window": {
-    "navigationBarTitleText": "Photix Mark",
+    "navigationBarTitleText": "映签",
     "navigationBarBackgroundColor": "#faf9f6",
     "navigationBarTextStyle": "black",
     "backgroundColor": "#faf9f6"

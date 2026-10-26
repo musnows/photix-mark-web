@@ -116,7 +116,7 @@ test('JPEG and PNG exports preserve original EXIF and filter private metadata', 
       const exif = await exifr.parse(bytes)
       assert.equal(exif.Model, 'NIKON Zf')
       assert.equal(exif.DateTimeOriginal.getFullYear(), 2026)
-      assert.equal(exif.Artist, photographyOnly ? undefined : 'Photix test photographer')
+      assert.equal(exif.Artist, photographyOnly ? undefined : 'Yingqian test photographer')
       assert.equal(typeof exif.latitude, photographyOnly ? 'undefined' : 'number')
       assert.equal((await sharp(bytes).metadata()).width, result.width)
       if (format === 'png') {
@@ -132,7 +132,7 @@ test('JPEG and PNG exports preserve original EXIF and filter private metadata', 
 test('hidden watermark survives exported PNG and detects the shared project marker', async () => {
   const photo = core.createDemo(4, 'standard1')
   photo.config.hiddenWatermarkEnabled = true
-  photo.config.hiddenWatermarkText = 'Photix 样片 42'
+  photo.config.hiddenWatermarkText = '映签 样片 42'
   const result = await core.exportPhoto(photo, target, { format: 'jpg', maxSide: 1280, preserveExif: false })
   assert.equal(result.format, 'png')
   const detection = await core.detectPhoto(result.path)
@@ -180,7 +180,7 @@ function pageHarness(overrides = {}) {
   const platform = { ...wx, showToast() {}, setStorageSync() {}, navigateBack() {}, redirectTo() {} }
   const implementation = { ...core, api: async () => ({ confirm: true }), ...overrides }
   return readFile(path.join(root, 'miniprogram/pages/editor/index.js'), 'utf8').then(source => {
-    runInNewContext(source, { Page(value) { page = value }, getApp: () => app, wx: platform, require: () => implementation, setTimeout, clearTimeout })
+    runInNewContext(source, { Page(value) { page = value }, getApp: () => app, wx: platform, require: name => name === '../../brand' ? { STORAGE: { preferences: 'yingqian-preferences-v1', signature: 'yingqian-signature-v1' } } : implementation, setTimeout, clearTimeout })
     page.data = structuredClone(page.data)
     page.setData = patch => Object.assign(page.data, structuredClone(patch))
     page.onLoad()

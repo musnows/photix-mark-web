@@ -68,7 +68,7 @@ async function createPickr() {
     lockOpacity: true,
     default: normalizeColor(props.modelValue),
     defaultRepresentation: 'HEXA',
-    appClass: 'photix-pickr-app',
+    appClass: 'yingqian-pickr-app',
     position: 'bottom-middle',
     swatches: [
       '#FFFFFF',
@@ -175,35 +175,35 @@ onBeforeUnmount(() => {
 </style>
 
 <style>
-.photix-pickr-app {
+.yingqian-pickr-app {
   z-index: 80;
   border-radius: 16px;
   box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18);
 }
 
-.photix-pickr-app .pcr-interaction {
+.yingqian-pickr-app .pcr-interaction {
   gap: 8px;
 }
 
-.photix-pickr-app .pcr-result {
+.yingqian-pickr-app .pcr-result {
   border-radius: 10px;
   border: 1px solid rgba(203, 213, 225, 0.9);
   box-shadow: none;
 }
 
-.photix-pickr-app .pcr-swatches {
+.yingqian-pickr-app .pcr-swatches {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
 }
 
-.photix-pickr-app .pcr-swatches button {
+.yingqian-pickr-app .pcr-swatches button {
   width: 100%;
   border-radius: 9999px;
 }
 
 @media (max-width: 640px) {
-  .photix-pickr-app {
+  .yingqian-pickr-app {
     position: fixed !important;
     top: auto !important;
     right: 12px !important;
@@ -214,8 +214,8 @@ onBeforeUnmount(() => {
     border-radius: 20px;
   }
 
-  .photix-pickr-app .pcr-selection .pcr-color-preview,
-  .photix-pickr-app .pcr-selection .pcr-last-color {
+  .yingqian-pickr-app .pcr-selection .pcr-color-preview,
+  .yingqian-pickr-app .pcr-selection .pcr-last-color {
     border-radius: 14px;
   }
 }

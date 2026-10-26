@@ -124,7 +124,7 @@ test('preload exposes only the expected signature IPC methods and forwards the f
     require: name => {
       assert.equal(name, 'electron')
       return {
-        contextBridge: { exposeInMainWorld: (key, value) => { assert.equal(key, 'photixDesktop'); desktop = value } },
+        contextBridge: { exposeInMainWorld: (key, value) => { assert.equal(key, 'yingqianDesktop'); desktop = value } },
         ipcRenderer: { invoke: async (channel, ...args) => { calls.push({ channel, args }) } }
       }
     }

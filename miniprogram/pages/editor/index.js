@@ -1,4 +1,5 @@
 const core = require('../../lib/core')
+const { STORAGE } = require('../../brand')
 const displayKeys = ['showBrand', 'showModel', 'showLens', 'showFocalLength', 'showAperture', 'showShutter', 'showISO', 'showDateTime']
 const dateFormats = [...core.DATE_TIME_FORMAT_OPTIONS, { value: 'custom', label: '自定义格式' }]
 const clone = value => JSON.parse(JSON.stringify(value))
@@ -125,7 +126,7 @@ Page({
       const signature = await core.importSignature(this.canvas)
       this.currentPhoto().config.signature = signature
       getApp().globalData.signature = { ...signature }
-      wx.setStorageSync('photix-signature-v1', signature)
+      wx.setStorageSync(STORAGE.signature, signature)
       this.refreshPhoto(); this.requestPreview()
     } catch (error) { if (!/cancel/i.test(error.errMsg || '')) this.setData({ error: error.message || '签名读取失败，请选择透明 PNG。' }) }
     finally { if (!this.unloaded) this.setData({ importing: false }) }
@@ -139,7 +140,7 @@ Page({
     if (key === 'anchor') value = Number(value) === 0 ? 'params' : 'camera'
     this.currentPhoto().config.signature = { ...this.data.signature, [key]: value }
     getApp().globalData.signature = { ...this.currentPhoto().config.signature }
-    wx.setStorageSync('photix-signature-v1', this.currentPhoto().config.signature)
+    wx.setStorageSync(STORAGE.signature, this.currentPhoto().config.signature)
     this.refreshPhoto(); this.requestPreview()
   },
   changeSetting(event) {
@@ -150,7 +151,7 @@ Page({
     const settings = { ...this.data.settings, [key]: value }
     this.setData({ settings, sizeIndex: [1280, 2048, 2560].indexOf(settings.maxSide), formatIndex: settings.format === 'png' ? 1 : 0 })
     getApp().globalData.preferences = { settings }
-    wx.setStorageSync('photix-preferences-v1', { settings })
+    wx.setStorageSync(STORAGE.preferences, { settings })
   },
   async addPhotos() {
     if (this.data.exporting || this.data.importing || this.photos.length >= 9) return

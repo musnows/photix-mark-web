@@ -3,7 +3,7 @@ export interface SavedSignatureFile {
   bytes: Uint8Array
 }
 
-export interface PhotixDesktop {
+export interface YingqianDesktop {
   getExportDirectory(): Promise<string>
   chooseExportDirectory(): Promise<string | null>
   resetExportDirectory(): Promise<string>
@@ -16,6 +16,6 @@ export interface PhotixDesktop {
 
 declare global {
   interface Window {
-    photixDesktop?: PhotixDesktop
+    yingqianDesktop?: YingqianDesktop
   }
 }

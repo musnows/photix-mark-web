@@ -22,10 +22,10 @@ const busy = ref(false)
 const { error: showError } = useToast()
 
 onMounted(async () => {
-  desktop.value = Boolean(window.photixDesktop)
+  desktop.value = Boolean(window.yingqianDesktop)
   if (!desktop.value) return
   try {
-    directory.value = await window.photixDesktop!.getExportDirectory()
+    directory.value = await window.yingqianDesktop!.getExportDirectory()
   } catch (error) {
     console.error('Failed to read export directory:', error)
     showError('读取导出目录失败，请重新选择目录')
@@ -36,8 +36,8 @@ async function updateDirectory(reset = false) {
   busy.value = true
   try {
     const selected = reset
-      ? await window.photixDesktop!.resetExportDirectory()
-      : await window.photixDesktop!.chooseExportDirectory()
+      ? await window.yingqianDesktop!.resetExportDirectory()
+      : await window.yingqianDesktop!.chooseExportDirectory()
     if (selected) directory.value = selected
   } catch (error) {
     console.error('Failed to update export directory:', error)
@@ -52,7 +52,7 @@ const resetDirectory = () => updateDirectory(true)
 
 async function openDirectory() {
   try {
-    await window.photixDesktop!.openExportDirectory()
+    await window.yingqianDesktop!.openExportDirectory()
   } catch (error) {
     console.error('Failed to open export directory:', error)
     showError('无法打开导出目录，请重新选择目录')

@@ -1,6 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron')
 
-contextBridge.exposeInMainWorld('photixDesktop', {
+contextBridge.exposeInMainWorld('yingqianDesktop', {
   getExportDirectory: () => ipcRenderer.invoke('export:get-directory'),
   chooseExportDirectory: () => ipcRenderer.invoke('export:choose-directory'),
   resetExportDirectory: () => ipcRenderer.invoke('export:reset-directory'),

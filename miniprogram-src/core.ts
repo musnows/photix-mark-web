@@ -183,7 +183,7 @@ export function exportPhoto(photo: any, canvas: HTMLCanvasElement, settings: any
       let path = await canvasFile(output, canvas, options.format)
       if (options.preserveExif && !snapshot.isDemo) {
         const result = await preserveMetadata(await readBytes(path), await readBytes(snapshot.path), options, width, height)
-        path = await writeBytes(`${wx.env.USER_DATA_PATH}/photix-export.${options.format}`, result)
+        path = await writeBytes(`${wx.env.USER_DATA_PATH}/yingqian-export.${options.format}`, result)
       }
       return { path, width, height, format: options.format }
     } finally { releaseCanvases(); canvas.width = 1; canvas.height = 1 }
@@ -211,7 +211,7 @@ export function importSignature(canvas: HTMLCanvasElement) {
       const cropped = createCanvas(right - left + 1, bottom - top + 1)
       cropped.getContext('2d')!.drawImage(source, left, top, cropped.width, cropped.height, 0, 0, cropped.width, cropped.height)
       const temp = await canvasFile(cropped, canvas, 'png')
-      const dataUrl = await writeBytes(`${wx.env.USER_DATA_PATH}/photix-signature-${Date.now()}-${++signatureSerial}.png`, await readBytes(temp))
+      const dataUrl = await writeBytes(`${wx.env.USER_DATA_PATH}/yingqian-signature-${Date.now()}-${++signatureSerial}.png`, await readBytes(temp))
       return { ...DEFAULT_SIGNATURE, dataUrl, name: '我的签名', aspectRatio: cropped.width / cropped.height }
     } finally { releaseCanvases(); canvas.width = 1; canvas.height = 1 }
   })

@@ -37,7 +37,7 @@
           maxlength="120"
           autocomplete="off"
           spellcheck="false"
-          placeholder="例如：Photix Mark / 摄影师名称"
+          placeholder="例如：映签 / 摄影师名称"
           class="w-full rounded-xl border border-border bg-card px-3 py-2 text-[13px] font-medium text-foreground outline-none transition placeholder:text-muted-foreground focus:border-ring sm:rounded-2xl sm:text-sm"
           @input="updateMarker(($event.target as HTMLInputElement).value)"
         />
@@ -98,7 +98,7 @@ function toggleEnabled() {
     emit('update:modelValue', {
       ...props.modelValue,
       hiddenWatermarkEnabled: true,
-      hiddenWatermarkText: 'Photix Mark'
+      hiddenWatermarkText: '映签'
     })
     return
   }

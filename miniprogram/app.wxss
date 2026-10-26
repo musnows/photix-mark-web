@@ -8,8 +8,8 @@ button:active { opacity: .76; }
 .row { display: flex; align-items: center; justify-content: space-between; gap: 20rpx; }
 .stack { display: flex; flex-direction: column; gap: 20rpx; }
 .mono { font-family: "SFMono-Regular", Menlo, Consolas, monospace; }
-.brand { font-size: 30rpx; letter-spacing: -1rpx; font-weight: 700; }
-.brand-mark { display: inline-block; width: 22rpx; height: 22rpx; border: 6rpx solid #c99018; border-radius: 6rpx; margin-right: 12rpx; transform: rotate(-10deg); }
+.brand { display: flex; align-items: center; font-size: 36rpx; letter-spacing: 2rpx; font-weight: 700; }
+.brand-mark { display: block; width: 80rpx; height: 80rpx; border-radius: 18rpx; margin-right: 12rpx; }
 .muted { color: #8b8980; }
 .small { font-size: 23rpx; }
 .eyebrow { font-size: 20rpx; letter-spacing: 4rpx; font-weight: 600; color: #9b7632; }

@@ -37,6 +37,7 @@ for (const filename of await readdir(path.join(root, 'public/logos'))) {
     .resize({ width: 640, height: 320, fit: 'inside', withoutEnlargement: true })
     .png({ palette: true }).toFile(path.join(target, 'logos', filename.replace(/\.svg$/, '.png')))
 }
+await sharp(path.join(root, 'branding/yingqian-logo.png')).resize(256, 256).png({ palette: true }).toFile(path.join(target, 'assets/yingqian-logo.png'))
 await sharp(path.join(root, 'public/demo/4_标准水印.JPG'))
   .extract({ left: 0, top: 0, width: 1080, height: 720 }).jpeg({ quality: 87 }).toFile(path.join(target, 'assets/sample.jpg'))
 async function size(directory) {

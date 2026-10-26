@@ -77,6 +77,8 @@ async function checkDetectorWindowIsolation(platformPath) {
     static getAllWindows() { return windows }
   }
   const app = Object.assign(new EventEmitter(), {
+    setName: name => assert.equal(name, '映签'),
+    commandLine: { hasSwitch: () => false },
     requestSingleInstanceLock: () => true,
     whenReady: () => Promise.resolve(),
     getPath: name => `/test/${name}`
@@ -105,6 +107,7 @@ async function checkDetectorWindowIsolation(platformPath) {
       if (name === 'electron') return electron
       if (name === 'node:path') return platformPath
       if (name === './protocol.cjs') return require('../electron/protocol.cjs')
+      if (name === './dataDirectory.cjs') return require('../electron/dataDirectory.cjs')
       if (name === './storage.cjs') return { createSignatureStore: directory => {
         assert.equal(directory, platformPath.join('/test/userData', 'signatures'))
         return {

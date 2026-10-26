@@ -1,6 +1,6 @@
 {
   "appid": "touristappid",
-  "projectname": "Photix Mark",
+  "projectname": "映签",
   "compileType": "miniprogram",
   "miniprogramRoot": "./",
   "libVersion": "3.7.0",

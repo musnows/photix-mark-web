@@ -41,13 +41,13 @@ export async function downloadImages(
 
     // 导出 ZIP
     const timestamp = new Date().toISOString().slice(0, 10)
-    await saveExport(zipBlob, `photix-mark-${timestamp}.zip`)
+    await saveExport(zipBlob, `yingqian-${timestamp}.zip`)
   }
 }
 
 async function saveExport(blob: Blob, name: string): Promise<void> {
-  if (typeof window !== 'undefined' && window.photixDesktop) {
-    await window.photixDesktop.saveFile({ name, bytes: new Uint8Array(await blob.arrayBuffer()) })
+  if (typeof window !== 'undefined' && window.yingqianDesktop) {
+    await window.yingqianDesktop.saveFile({ name, bytes: new Uint8Array(await blob.arrayBuffer()) })
     return
   }
   FileSaver.saveAs(blob, name)

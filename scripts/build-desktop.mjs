@@ -13,12 +13,12 @@ if (process.platform === 'darwin') {
       if (resized.status !== 0) throw new Error('Failed to prepare app icon')
     }
   }
-  const converted = spawnSync('iconutil', ['-c', 'icns', '-o', '.desktop/photix.icns', iconset], { stdio: 'inherit' })
+  const converted = spawnSync('iconutil', ['-c', 'icns', '-o', '.desktop/yingqian.icns', iconset], { stdio: 'inherit' })
   if (converted.status !== 0) throw new Error('Failed to convert app icon')
 }
 const build = spawnSync(process.execPath, ['node_modules/nuxt/bin/nuxt.mjs', 'generate'], {
   cwd: root,
-  env: { ...process.env, PHOTIX_DESKTOP: '1' },
+  env: { ...process.env, YINGQIAN_DESKTOP: '1' },
   stdio: 'inherit'
 })
 if (build.status !== 0) process.exit(build.status || 1)
@@ -26,7 +26,7 @@ if (build.status !== 0) process.exit(build.status || 1)
 const appDirectory = path.join('.desktop', `app-${Date.now()}`)
 await mkdir(path.join(appDirectory, 'electron'), { recursive: true })
 await mkdir(path.join(appDirectory, 'renderer'), { recursive: true })
-for (const file of ['main.cjs', 'preload.cjs', 'protocol.cjs', 'storage.cjs']) {
+for (const file of ['main.cjs', 'preload.cjs', 'protocol.cjs', 'storage.cjs', 'dataDirectory.cjs']) {
   await cp(path.join('electron', file), path.join(appDirectory, 'electron', file))
 }
 const assets = [
@@ -42,11 +42,11 @@ for (const asset of assets) {
 }
 const metadata = JSON.parse(await readFile('package.json', 'utf8'))
 await writeFile(path.join(appDirectory, 'package.json'), JSON.stringify({
-  name: 'photix-mark-desktop',
+  name: 'yingqian-desktop',
   version: metadata.version,
-  productName: 'Photix Mark',
+  productName: '映签',
   description: 'Offline photo watermark editor',
-  author: 'Photix Mark contributors',
+  author: 'Yingqian contributors',
   license: 'MIT',
   main: 'electron/main.cjs',
   dependencies: {}

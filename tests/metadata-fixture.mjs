@@ -26,8 +26,8 @@ export function metadataFixture(image = Buffer.from([0xff, 0xd8, 0xff, 0xd9])) {
   const long = value => { const data = Buffer.alloc(4); data.writeUInt32LE(value); return data }
   const root = directory([
     ascii(271, 'NIKON CORPORATION'), ascii(272, 'NIKON Zf'),
-    ascii(305, 'Metadata fixture editor'), ascii(315, 'Photix test photographer'),
-    ascii(33432, 'Copyright Photix 2026'), [34665, 4, 1, long(0)], [34853, 4, 1, long(0)]
+    ascii(305, 'Metadata fixture editor'), ascii(315, 'Yingqian test photographer'),
+    ascii(33432, 'Copyright Yingqian 2026'), [34665, 4, 1, long(0)], [34853, 4, 1, long(0)]
   ])
   const comment = Buffer.from('ASCII\0\0\0Complete user comment')
   const maker = Buffer.from([0x4e, 0x69, 0x6b, 0x6f, 0x6e, 0x00, 0xfe, 0xff])
@@ -43,7 +43,7 @@ export function metadataFixture(image = Buffer.from([0xff, 0xd8, 0xff, 0xd9])) {
     header.writeUInt16BE(payload.length + 2, 2)
     return Buffer.concat([header, payload])
   }
-  const xmp = '<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description xmlns:dc="http://purl.org/dc/elements/1.1/" dc:description="Full metadata search fixture" dc:title="Photix full metadata" /></rdf:RDF></x:xmpmeta>'
+  const xmp = '<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description xmlns:dc="http://purl.org/dc/elements/1.1/" dc:description="Full metadata search fixture" dc:title="Yingqian full metadata" /></rdf:RDF></x:xmpmeta>'
   return Buffer.concat([
     image.subarray(0, 2),
     segment(0xe1, Buffer.concat([Buffer.from('Exif\0\0'), tiff.subarray(0, offset)])),

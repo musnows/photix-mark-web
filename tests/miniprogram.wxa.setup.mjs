@@ -3,7 +3,7 @@ const event = (key, value, extra = {}) => ({ currentTarget: { dataset: { key, ..
 
 export default ({ env }) => ({
   run() {
-    if (!new URLSearchParams(location.search).has('photixTest')) return
+    if (!new URLSearchParams(location.search).has('yingqianTest')) return
     setTimeout(async () => {
       const report = { device: env.WXA_DEVICE_ID, results: [], errors: [], complete: false }
       let api
@@ -95,7 +95,7 @@ export default ({ env }) => ({
           await api.callPageMethod('changeConfig', event('hiddenWatermarkText', '中'.repeat(22)))
           await api.callPageMethod('savePhotos', { currentTarget: { dataset: {} } })
           check((await api.pageData()).error.length > 0, 'Oversized marker was accepted')
-          await api.callPageMethod('changeConfig', event('hiddenWatermarkText', 'Photix 本地测试 42'))
+          await api.callPageMethod('changeConfig', event('hiddenWatermarkText', '映签 本地测试 42'))
           await preview()
         })
         await run('worker embeds a marker in lossless PNG', async () => {
@@ -108,7 +108,7 @@ export default ({ env }) => ({
           await api.callPageMethod('detectExport')
           await api.waitForPage('pages/detect/index')
           const data = await until(async () => { const data = await api.pageData(); if (data.error) throw new Error(data.error); return data.checked && !data.busy ? data : null }, 'worker detection', 90000)
-          check(data.result?.marker === 'Photix 本地测试 42', 'Hidden watermark round-trip failed')
+          check(data.result?.marker === '映签 本地测试 42', 'Hidden watermark round-trip failed')
         })
         await run('no runtime errors or unimplemented native APIs', async () => {
           report.errors = await api.errors()

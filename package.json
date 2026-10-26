@@ -1,10 +1,11 @@
 {
-  "name": "photix-mark-web",
+  "name": "yingqian",
   "version": "1.0.4",
   "type": "module",
   "private": true,
   "scripts": {
     "brand:build": "node scripts/build-brand-assets.mjs",
+    "test:brand": "node --test tests/brand-compatibility.test.cjs",
     "mini:build": "node scripts/build-miniprogram.mjs",
     "mini:dev": "node scripts/start-miniprogram.mjs",
     "test:mini": "node scripts/build-miniprogram.mjs && node --test --test-concurrency=1 tests/miniprogram.test.mjs",
