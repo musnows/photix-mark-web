@@ -28,8 +28,5 @@ logs
 .desktop/
 release/
 .ai-docs/
-miniprogram/lib/
-miniprogram/logos/
-miniprogram/assets/
-miniprogram/workers/
-miniprogram/project.private.config.json
+# Local files from the extracted mini-program project
+miniprogram/
