@@ -107,3 +107,7 @@ npm run dev
 ### 📄 开源协议
 
 本项目基于 **MIT License** 开源。详情请见 [LICENSE](./LICENSE) 文件。
+
+### 🌟 特别鸣谢
+
+感谢 [Linux.do](https://linux.do) 提供交流与学习的平台。学 AI，上 L 站！祝小破站越来越好～
